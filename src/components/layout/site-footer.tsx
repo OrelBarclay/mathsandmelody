@@ -14,17 +14,9 @@ export function SiteFooter() {
               rel="noreferrer"
               className="font-medium underline underline-offset-4"
             >
-              Your Name
+              Math and Melody
             </a>
-            . The source code is available on{" "}
-            <a
-              href="https://github.com/yourusername/mathsandmelody"
-              target="_blank"
-              rel="noreferrer"
-              className="font-medium underline underline-offset-4"
-            >
-              GitHub
-            </a>
+           with you in mind.
             .
           </p>
           <div className="flex items-center space-x-1">
@@ -37,7 +29,7 @@ export function SiteFooter() {
               <Twitter className="h-4 w-4" />
             </Link>
             <Link
-              href="https://facebook.com/yourusername"
+              href="https://facebook.com/mathandmelody"
               target="_blank"
               rel="noreferrer"
               className="rounded-md p-2 hover:bg-accent hover:text-accent-foreground"

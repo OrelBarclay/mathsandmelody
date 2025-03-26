@@ -13,115 +13,172 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { User, LogOut } from "lucide-react"
+import { User, LogOut, Menu, X } from "lucide-react"
 import { signOut } from "firebase/auth"
 import { auth } from "@/lib/firebase"
+import { useState } from "react"
 
 export function MainNav() {
   const pathname = usePathname()
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const handleSignOut = async () => {
-    try {
-      await signOut(auth)
-    } catch (error) {
-      console.error("Error signing out:", error)
-    }
+    await signOut()
   }
 
+  const navLinks = [
+    { href: "/", label: "Home" },
+    { href: "/services", label: "Services" },
+    { href: "/portfolio", label: "Portfolio" },
+    { href: "/book", label: "Book Now" },
+    { href: "/contact", label: "Contact" },
+  ]
+
   return (
-    <div className="mr-4 hidden md:flex">
-      <Link href="/" className="mr-6 flex items-center space-x-2">
-        <span className="hidden font-bold sm:inline-block">
-          Math & Melody
-        </span>
-      </Link>
-      <nav className="flex items-center space-x-6 text-sm font-medium">
-        <Link
-          href="/"
-          className={cn(
-            "transition-colors hover:text-foreground/80",
-            pathname === "/" ? "text-foreground" : "text-foreground/60"
-          )}
+    <div className="relative">
+    
+      {/* Mobile menu button */}
+      <div className="lg:hidden">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
-          Home
-        </Link>
-        <Link
-          href="/services"
-          className={cn(
-            "transition-colors hover:text-foreground/80",
-            pathname === "/services" ? "text-foreground" : "text-foreground/60"
+          <span className="sr-only">Toggle menu</span>
+          {isMenuOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <Menu className="h-6 w-6" />
           )}
-        >
-          Services
-        </Link>
-        <Link
-          href="/portfolio"
-          className={cn(
-            "transition-colors hover:text-foreground/80",
-            pathname === "/portfolio" ? "text-foreground" : "text-foreground/60"
-          )}
-        >
-          Portfolio
-        </Link>
-        <Link
-          href="/booking"
-          className={cn(
-            "transition-colors hover:text-foreground/80",
-            pathname === "/booking" ? "text-foreground" : "text-foreground/60"
-          )}
-        >
-          Book Now
-        </Link>
-        <Link
-          href="/contact"
-          className={cn(
-            "transition-colors hover:text-foreground/80",
-            pathname === "/contact" ? "text-foreground" : "text-foreground/60"
-          )}
-        >
-          Contact
-        </Link>
-      </nav>
-      <div className="ml-auto flex items-center space-x-4">
+        </Button>
+      </div>
+
+      {/* Desktop navigation */}
+      <div className="hidden lg:flex lg:gap-x-8">
+        {navLinks.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={cn(
+              "transition-colors hover:text-foreground/80",
+              pathname === link.href ? "text-foreground" : "text-foreground/60"
+            )}
+          >
+            {link.label}
+          </Link>
+        ))}
+      </div>
+
+      {/* Desktop auth buttons/menu */}
+      <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <User className="h-5 w-5" />
+              <Button variant="ghost" size="sm">
+                {user.email}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user.email}</p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
+            <DropdownMenuContent>
+              <DropdownMenuItem>
                 <Link href="/dashboard">Dashboard</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem>
                 <Link href="/profile">Profile</Link>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+                Log out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" asChild>
-              <Link href="/auth/signin">Sign In</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/auth/signup">Sign Up</Link>
-            </Button>
-          </div>
+          <>
+            <Link href="/auth/signin">
+              <Button variant="ghost" size="sm">Sign In</Button>
+            </Link>
+            <Link href="/auth/signup">
+              <Button size="sm">Sign Up</Button>
+            </Link>
+          </>
         )}
       </div>
+
+      {/* Mobile navigation menu */}
+      {isMenuOpen && (
+        <div className="fixed top-[4rem] inset-x-0 z-50 max-h-[calc(100vh-4rem)] overflow-y-auto bg-background border-b border-border lg:hidden">
+          <div className="flex flex-col space-y-4 p-4 container">
+            {/* Mobile nav links */}
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "px-2 py-1.5 text-sm transition-colors hover:text-foreground/80",
+                  pathname === link.href ? "text-foreground font-medium" : "text-foreground/60"
+                )}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))}
+            
+            {/* Mobile auth section */}
+            <div className="border-t border-border pt-4 mt-4">
+              {user ? (
+                <div className="space-y-4">
+                  <p className="px-2 text-sm text-foreground/60">{user.email}</p>
+                  <Link
+                    href="/dashboard"
+                    className="block px-2 py-1.5 text-sm text-foreground/60 hover:text-foreground"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/profile"
+                    className="block px-2 py-1.5 text-sm text-foreground/60 hover:text-foreground"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Profile
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start px-2"
+                    onClick={() => {
+                      handleSignOut()
+                      setIsMenuOpen(false)
+                    }}
+                  >
+                    Log out
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Link
+                    href="/auth/signin"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block"
+                  >
+                    <Button variant="ghost" size="sm" className="w-full">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link
+                    href="/auth/signup"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block"
+                  >
+                    <Button size="sm" className="w-full">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 } 
