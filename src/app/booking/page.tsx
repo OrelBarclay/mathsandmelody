@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { createBooking } from "@/lib/services/booking"
+import { stripePromise } from "@/lib/stripe"
 import { useState } from "react"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
@@ -25,15 +27,63 @@ export default function BookingPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedTime, setSelectedTime] = useState<string>("")
   const [selectedService, setSelectedService] = useState<string>("")
+  const [paymentType, setPaymentType] = useState<"oneTime" | "subscription">("oneTime")
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement booking submission logic
-    console.log({
-      date: selectedDate,
-      time: selectedTime,
-      service: selectedService,
-    })
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      // Get form data
+      const formData = new FormData(e.target as HTMLFormElement)
+      const name = formData.get("name") as string
+      const email = formData.get("email") as string
+      const phone = formData.get("phone") as string
+      const notes = formData.get("notes") as string
+
+      // Create booking in Firebase
+      const { bookingId, priceId } = await createBooking({
+        name,
+        email,
+        phone,
+        service: selectedService,
+        date: selectedDate!,
+        time: selectedTime,
+        notes,
+        paymentType,
+        status: "pending",
+      })
+
+      // Create Stripe checkout session
+      const response = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ priceId, bookingId }),
+      })
+
+      const { sessionId } = await response.json()
+
+      // Redirect to Stripe checkout
+      const stripe = await stripePromise
+      if (!stripe) throw new Error("Stripe failed to initialize")
+
+      const { error: stripeError } = await stripe.redirectToCheckout({
+        sessionId,
+      })
+
+      if (stripeError) {
+        throw new Error(stripeError.message)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -107,27 +157,45 @@ export default function BookingPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
+                  <Label>Payment Type</Label>
+                  <Select value={paymentType} onValueChange={(value: "oneTime" | "subscription") => setPaymentType(value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select payment type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="oneTime">One-time Payment</SelectItem>
+                      <SelectItem value="subscription">Subscription</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
-                  <Input id="name" placeholder="Your name" required />
+                  <Input id="name" name="name" placeholder="Your name" required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="Your email" required />
+                  <Input id="email" name="email" type="email" placeholder="Your email" required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone</Label>
-                  <Input id="phone" type="tel" placeholder="Your phone number" required />
+                  <Input id="phone" name="phone" type="tel" placeholder="Your phone number" required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="notes">Additional Notes</Label>
                   <Textarea
                     id="notes"
+                    name="notes"
                     placeholder="Any specific topics or requirements?"
                     className="min-h-[100px]"
                   />
                 </div>
-                <Button type="submit" className="w-full">
-                  Book Session
+                {error && (
+                  <div className="text-sm text-red-500">
+                    {error}
+                  </div>
+                )}
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Processing..." : "Book Session"}
                 </Button>
               </form>
             </CardContent>
