@@ -5,9 +5,28 @@ import Image from "next/image"
 import { useTheme } from "next-themes"
 import { MainNav } from "@/components/layout/main-nav"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
+import { useEffect, useState } from "react"
 
 function Logo() {
   const { theme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return (
+      <Image
+        src="/logo.png"
+        alt="Math and Melody Logo"
+        width={110}
+        height={110}
+        priority
+      />
+    )
+  }
+
   return (
     <Image
       src={theme === "dark" ? "/darkLogo.png" : "/logo.png"}
@@ -29,7 +48,7 @@ export function SiteHeader() {
             <span className="font-bold hidden md:block">Math & Melody Academy</span>
           </Link>
         </div>
-        <div className="flex flex-1 items-center justify-between space-x-2">
+        <div className="flex flex-1 items-center justify-between space-x-2 sm:justify-end">
           <MainNav />
           <ThemeToggle />
         </div>

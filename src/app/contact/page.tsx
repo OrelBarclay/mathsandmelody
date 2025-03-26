@@ -6,8 +6,19 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Facebook, Instagram, Mail, MapPin, Phone, Twitter } from "lucide-react"
 import Link from "next/link"
+import { useState } from "react"
 
 export default function ContactPage() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  })
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    console.log(formData)
+  }
   return (
     <MainLayout>
       <div className="container py-8 md:py-12 lg:py-24">
@@ -92,26 +103,26 @@ export default function ContactPage() {
                 Fill out the form below and we&apos;ll get back to you as soon as possible.
               </p>
             </div>
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <label htmlFor="name" className="text-sm font-medium">
                     Name
                   </label>
-                  <Input id="name" placeholder="Your name" />
+                  <Input id="name" placeholder="Your name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium">
                     Email
                   </label>
-                  <Input id="email" type="email" placeholder="Your email" />
+                  <Input id="email" type="email" placeholder="Your email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                 </div>
               </div>
               <div className="space-y-2">
                 <label htmlFor="subject" className="text-sm font-medium">
                   Subject
                 </label>
-                <Input id="subject" placeholder="What&apos;s this about?" />
+                <Input id="subject" placeholder="What&apos;s this about?" value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <label htmlFor="message" className="text-sm font-medium">
@@ -121,6 +132,8 @@ export default function ContactPage() {
                   id="message"
                   placeholder="Your message"
                   className="min-h-[150px]"
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 />
               </div>
               <Button type="submit" className="w-full">
