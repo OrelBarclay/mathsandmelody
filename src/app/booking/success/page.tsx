@@ -1,10 +1,10 @@
 "use client"
 
 import { MainLayout } from "@/components/layout/main-layout"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { CheckCircle } from "lucide-react"
 
 export default function BookingSuccessPage() {
   return (
@@ -15,7 +15,7 @@ export default function BookingSuccessPage() {
             Booking Successful!
           </h1>
           <p className="max-w-[750px] text-lg text-muted-foreground sm:text-xl">
-            Thank you for booking with us. We&apos;ll send you a confirmation email shortly.
+            Thank you for choosing Math & Melody Academy.
           </p>
         </div>
 
@@ -24,19 +24,20 @@ export default function BookingSuccessPage() {
             <CardHeader>
               <CardTitle className="flex items-center justify-center gap-2">
                 <CheckCircle className="h-6 w-6 text-green-500" />
-                Payment Confirmed
+                Your booking has been confirmed
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-center">
-              <p className="text-muted-foreground">
-                Your session has been booked successfully. We&apos;ll send you a confirmation email with all the details.
+              <p>
+                We&apos;ll send you a confirmation email with the details of your booking.
+                You can also view your booking in your dashboard.
               </p>
               <div className="flex justify-center gap-4">
                 <Button asChild>
-                  <Link href="/dashboard">View Booking Details</Link>
+                  <Link href="/dashboard">View Dashboard</Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link href="/">Return to Home</Link>
+                  <Link href="/">Return Home</Link>
                 </Button>
               </div>
             </CardContent>
