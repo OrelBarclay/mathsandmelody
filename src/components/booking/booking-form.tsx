@@ -13,14 +13,13 @@ import {
 } from "@/components/ui/select"
 import { useState } from "react"
 import { BookingService, Booking } from "@/lib/services/booking-service"
+import { StripeService } from "@/lib/services/stripe-service"
 import { useAuth } from "@/contexts/auth-context"
-import { useRouter } from "next/navigation"
 
 const bookingService = new BookingService()
 
 export function BookingForm() {
   const { user } = useAuth()
-  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -42,7 +41,8 @@ export function BookingForm() {
     setError(null)
 
     try {
-      await bookingService.createBooking({
+      // Create booking
+      const booking = await bookingService.createBooking({
         userId: user.uid,
         serviceType: formData.serviceType,
         date: new Date(formData.date),
@@ -52,7 +52,11 @@ export function BookingForm() {
         notes: formData.notes,
       })
 
-      router.push("/booking/success")
+      // Create Stripe checkout session
+      await StripeService.createCheckoutSession({
+        bookingId: booking.id!,
+        amount: booking.price,
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create booking")
     } finally {
@@ -129,7 +133,7 @@ export function BookingForm() {
       )}
 
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Processing..." : "Book Now"}
+        {loading ? "Processing..." : "Proceed to Payment"}
       </Button>
     </form>
   )
