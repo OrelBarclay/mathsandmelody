@@ -89,7 +89,7 @@ export default function ContactPage() {
             <div className="space-y-2">
               <h2 className="text-2xl font-bold">Send us a Message</h2>
               <p className="text-muted-foreground">
-                Fill out the form below and we'll get back to you as soon as possible.
+                Fill out the form below and we&apos;ll get back to you as soon as possible.
               </p>
             </div>
             <form className="space-y-4">
