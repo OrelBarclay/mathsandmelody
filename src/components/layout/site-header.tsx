@@ -8,13 +8,14 @@ import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { useEffect, useState } from "react"
 
 function Logo() {
-  const { theme } = useTheme()
+  const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
+  // During SSR, always use light theme logo
   if (!mounted) {
     return (
       <Image
@@ -27,9 +28,10 @@ function Logo() {
     )
   }
 
+  // After hydration, use theme-based logo
   return (
     <Image
-      src={theme === "dark" ? "/darkLogo.png" : "/logo.png"}
+      src={resolvedTheme === "dark" ? "/darkLogo.png" : "/logo.png"}
       alt="Math and Melody Logo"
       width={110}
       height={110}
