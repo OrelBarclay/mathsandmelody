@@ -16,8 +16,7 @@ export function SiteFooter() {
             >
               Math and Melody
             </a>
-           with you in mind.
-            .
+           {" "}for your success.
           </p>
           <div className="flex items-center space-x-1">
             <Link
