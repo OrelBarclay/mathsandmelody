@@ -15,10 +15,15 @@ export interface BookingData {
   userId?: string
 }
 
+const getBookingsCollection = () => {
+  if (!db) throw new Error("Firestore is not initialized")
+  return collection(db, "bookings")
+}
+
 export async function createBooking(data: BookingData) {
   try {
     // Create a booking document in Firestore
-    const bookingRef = await addDoc(collection(db, "bookings"), {
+    const bookingRef = await addDoc(getBookingsCollection(), {
       ...data,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -43,7 +48,7 @@ export async function createBooking(data: BookingData) {
 
 export async function updateBookingStatus(bookingId: string, status: BookingData["status"]) {
   try {
-    const bookingRef = doc(db, "bookings", bookingId)
+    const bookingRef = doc(getBookingsCollection(), bookingId)
     await updateDoc(bookingRef, {
       status,
       updatedAt: serverTimestamp(),
