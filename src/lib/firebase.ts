@@ -14,20 +14,17 @@ console.log('Environment check:', {
 })
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyD0XObk_J9POLp8Z8dKpUd_VSI3OmcRRks",
+  authDomain: "mathandmelody-a677f.firebaseapp.com",
+  projectId: "mathandmelody-a677f",
+  storageBucket: "mathandmelody-a677f.firebasestorage.app",
+  messagingSenderId: "417011127689",
+  appId: "1:417011127689:web:3509abac4a6250b0463d58"
 }
 
 // Initialize Firebase
 let app
 try {
-  if (!firebaseConfig.apiKey) {
-    throw new Error('Firebase API key is missing')
-  }
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
 } catch (error) {
   console.error('Error initializing Firebase:', error)
