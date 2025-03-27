@@ -1,0 +1,89 @@
+[debug] [2025-03-27T02:27:40.339Z] ----------------------------------------------------------------------
+[debug] [2025-03-27T02:27:40.341Z] Command:       /Users/orelbarclay/.nvm/versions/node/v22.14.0/bin/node /opt/homebrew/bin/firebase deploy --only hosting
+[debug] [2025-03-27T02:27:40.341Z] CLI Version:   13.35.1
+[debug] [2025-03-27T02:27:40.341Z] Platform:      darwin
+[debug] [2025-03-27T02:27:40.341Z] Node Version:  v22.14.0
+[debug] [2025-03-27T02:27:40.341Z] Time:          Wed Mar 26 2025 22:27:40 GMT-0400 (Eastern Daylight Time)
+[debug] [2025-03-27T02:27:40.341Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-03-27T02:27:40.416Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-03-27T02:27:40.416Z] > authorizing via signed-in user (mathsandmelodyacademy@gmail.com)
+[debug] [2025-03-27T02:27:40.417Z] [iam] checking project mathandmelody-a677f for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2025-03-27T02:27:40.417Z] Checked if tokens are valid: true, expires at: 1743045828411
+[debug] [2025-03-27T02:27:40.417Z] Checked if tokens are valid: true, expires at: 1743045828411
+[debug] [2025-03-27T02:27:40.417Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/mathandmelody-a677f:testIamPermissions [none]
+[debug] [2025-03-27T02:27:40.417Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/mathandmelody-a677f:testIamPermissions x-goog-quota-user=projects/mathandmelody-a677f
+[debug] [2025-03-27T02:27:40.417Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/mathandmelody-a677f:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-03-27T02:27:40.601Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/mathandmelody-a677f:testIamPermissions 200
+[debug] [2025-03-27T02:27:40.601Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/mathandmelody-a677f:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-03-27T02:27:40.601Z] Checked if tokens are valid: true, expires at: 1743045828411
+[debug] [2025-03-27T02:27:40.601Z] Checked if tokens are valid: true, expires at: 1743045828411
+[debug] [2025-03-27T02:27:40.601Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/mathandmelody-a677f [none]
+[debug] [2025-03-27T02:27:40.884Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/mathandmelody-a677f 200
+[debug] [2025-03-27T02:27:40.884Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/mathandmelody-a677f {"projectId":"mathandmelody-a677f","projectNumber":"417011127689","displayName":"mathandmelody","name":"projects/mathandmelody-a677f","resources":{"hostingSite":"mathandmelody-a677f"},"state":"ACTIVE","etag":"1_ee728107-7022-4e8c-bf36-91e6023aca26"}
+[debug] [2025-03-27T02:27:41.671Z] Checked if tokens are valid: true, expires at: 1743045828411
+[debug] [2025-03-27T02:27:41.671Z] Checked if tokens are valid: true, expires at: 1743045828411
+[debug] [2025-03-27T02:27:41.672Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/mathandmelody-a677f/sites pageToken=&pageSize=10
+[debug] [2025-03-27T02:27:42.076Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/mathandmelody-a677f/sites 200
+[debug] [2025-03-27T02:27:42.076Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/mathandmelody-a677f/sites {"sites":[{"name":"projects/mathandmelody-a677f/sites/mathandmelody-a677f","defaultUrl":"https://mathandmelody-a677f.web.app","appId":"1:417011127689:web:3509abac4a6250b0463d58","type":"DEFAULT_SITE"}]}
+[debug] [2025-03-27T02:27:42.077Z] Checked if tokens are valid: true, expires at: 1743045828411
+[debug] [2025-03-27T02:27:42.077Z] Checked if tokens are valid: true, expires at: 1743045828411
+[debug] [2025-03-27T02:27:42.077Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:417011127689:web:3509abac4a6250b0463d58/config [none]
+[debug] [2025-03-27T02:27:42.637Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:417011127689:web:3509abac4a6250b0463d58/config 200
+[debug] [2025-03-27T02:27:42.637Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:417011127689:web:3509abac4a6250b0463d58/config {"projectId":"mathandmelody-a677f","appId":"1:417011127689:web:3509abac4a6250b0463d58","storageBucket":"mathandmelody-a677f.firebasestorage.app","apiKey":"AIzaSyD0XObk_J9POLp8Z8dKpUd_VSI3OmcRRks","authDomain":"mathandmelody-a677f.firebaseapp.com","messagingSenderId":"417011127689","measurementId":"G-KCBFTYG86Y"}
+[info] 
+   Thank you for trying our early preview of Next.js support on Firebase Hosting.
+   During the preview, support is best-effort and breaking changes can be expected. Proceed with caution.
+   The integration is known to work with Next.js version 12 - 15.0. You may encounter errors.
+
+   Documentation: https://firebase.google.com/docs/hosting/frameworks/nextjs
+   File a bug: https://github.com/firebase/firebase-tools/issues/new?template=bug_report.md
+   Submit a feature request: https://github.com/firebase/firebase-tools/issues/new?template=feature_request.md
+
+   We'd love to learn from you. Express your interest in helping us shape the future of Firebase Hosting: https://goo.gle/41enW5X
+
+[debug] [2025-03-27T02:27:44.165Z] Checked if tokens are valid: true, expires at: 1743045828411
+[debug] [2025-03-27T02:27:44.165Z] Checked if tokens are valid: true, expires at: 1743045828411
+[debug] [2025-03-27T02:27:44.165Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/mathandmelody-a677f/sites/mathandmelody-a677f [none]
+[debug] [2025-03-27T02:27:44.300Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/mathandmelody-a677f/sites/mathandmelody-a677f 200
+[debug] [2025-03-27T02:27:44.300Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/mathandmelody-a677f/sites/mathandmelody-a677f {"name":"projects/mathandmelody-a677f/sites/mathandmelody-a677f","defaultUrl":"https://mathandmelody-a677f.web.app","appId":"1:417011127689:web:3509abac4a6250b0463d58","type":"DEFAULT_SITE"}
+[info]    ▲ Next.js 15.2.4
+
+[info]    - Environments: .env.local
+
+
+[info]    Creating an optimized production build ...
+
+[info]  ✓ Compiled successfully
+
+[info]    Linting and checking validity of types ...
+
+[info] 
+Failed to compile.
+
+./src/components/layout/main-nav.tsx
+12:3  Error: 'DropdownMenuLabel' is defined but never used.  @typescript-eslint/no-unused-vars
+13:3  Error: 'DropdownMenuSeparator' is defined but never used.  @typescript-eslint/no-unused-vars
+16:10  Error: 'User' is defined but never used.  @typescript-eslint/no-unused-vars
+16:16  Error: 'LogOut' is defined but never used.  @typescript-eslint/no-unused-vars
+17:10  Error: 'signOut' is defined but never used.  @typescript-eslint/no-unused-vars
+18:10  Error: 'auth' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/layout/site-header.tsx
+7:10  Error: 'ThemeToggle' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ui/input.tsx
+5:18  Error: An interface declaring no members is equivalent to its supertype.  @typescript-eslint/no-empty-object-type
+
+./src/components/ui/textarea.tsx
+5:18  Error: An interface declaring no members is equivalent to its supertype.  @typescript-eslint/no-empty-object-type
+
+./src/contexts/auth-context.tsx
+11:3  Error: 'GoogleAuthProvider' is defined but never used.  @typescript-eslint/no-unused-vars
+12:3  Error: 'GithubAuthProvider' is defined but never used.  @typescript-eslint/no-unused-vars
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+
+[debug] [2025-03-27T02:27:52.437Z] Error: ENOENT: no such file or directory, open '/Users/orelbarclay/Documents/Nextjs/mathsandmelody/.next/export-marker.json'
+[error] 
+[error] Error: An unexpected error has occurred.

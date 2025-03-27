@@ -4,7 +4,6 @@ import Link from "next/link"
 import Image from "next/image"
 import { useTheme } from "next-themes"
 import { MainNav } from "@/components/layout/main-nav"
-import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { useEffect, useState } from "react"
 
 function Logo() {
@@ -52,7 +51,7 @@ export function SiteHeader() {
         </div>
         <div className="flex flex-1 items-center justify-between space-x-2 sm:justify-end">
           <MainNav />
-          <ThemeToggle />
+          {/* <ThemeToggle /> */}
         </div>
       </div>
     </header>

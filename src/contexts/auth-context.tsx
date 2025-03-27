@@ -8,8 +8,6 @@ import {
   signOut,
   onAuthStateChanged,
   signInWithPopup,
-  GoogleAuthProvider,
-  GithubAuthProvider,
 } from "firebase/auth"
 import { auth, googleProvider, githubProvider } from "@/lib/firebase"
 

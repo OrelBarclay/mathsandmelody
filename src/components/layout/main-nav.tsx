@@ -9,15 +9,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { User, LogOut, Menu, X } from "lucide-react"
-import { signOut } from "firebase/auth"
-import { auth } from "@/lib/firebase"
+import { Menu, X } from "lucide-react"
 import { useState } from "react"
-
+import { ThemeToggle } from "@/components/layout/theme-toggle"
 export function MainNav() {
   const pathname = usePathname()
   const { user, signOut } = useAuth()
@@ -101,6 +97,7 @@ export function MainNav() {
             </Link>
           </>
         )}
+        <ThemeToggle />
       </div>
 
       {/* Mobile navigation menu */}
@@ -178,6 +175,8 @@ export function MainNav() {
             </div>
           </div>
         </div>
+         
+
       )}
     </div>
   )
