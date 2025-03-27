@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { auth } from "@/lib/firebase-admin"
 
 export async function middleware(request: NextRequest) {
   const session = request.cookies.get("session")?.value
@@ -10,8 +9,26 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    const decodedToken = await auth.verifySessionCookie(session)
-    const isAdmin = decodedToken.admin === true
+    // Verify session with Firebase Auth REST API
+    const response = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${process.env.NEXT_PUBLIC_FIREBASE_API_KEY}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          idToken: session,
+        }),
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error('Invalid session')
+    }
+
+    const data = await response.json()
+    const isAdmin = data.users[0]?.customClaims?.admin === true
 
     // If trying to access admin routes
     if (request.nextUrl.pathname.startsWith("/admin")) {
