@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 
-interface User {
+interface AdminUser {
   uid: string
   email: string | null
   displayName: string | null
@@ -22,9 +22,9 @@ interface User {
 }
 
 export default function AdminUsersPage() {
-  const { user } = useAuth()
+  const { isAdmin } = useAuth()
   const { toast } = useToast()
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
 
   const fetchUsers = useCallback(async () => {
@@ -48,12 +48,12 @@ export default function AdminUsersPage() {
   }, [toast])
 
   useEffect(() => {
-    if (user?.role === "admin") {
+    if (isAdmin) {
       fetchUsers()
     } else {
       setLoading(false)
     }
-  }, [user, fetchUsers])
+  }, [isAdmin, fetchUsers])
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     try {
@@ -89,7 +89,7 @@ export default function AdminUsersPage() {
     }
   }
 
-  if (!user?.role || user.role !== "admin") {
+  if (!isAdmin) {
     return (
       <MainLayout>
         <div className="container mx-auto py-8 px-4">
