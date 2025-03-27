@@ -60,3 +60,4 @@ service-account.json
 *.swp
 *.swo
 service-account.json
+service.json
