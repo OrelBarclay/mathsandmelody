@@ -6,6 +6,7 @@ import { BookingService, Booking } from "@/lib/services/booking-service"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+import { Calendar, Clock, User, BookOpen } from "lucide-react"
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -23,57 +24,78 @@ export default function DashboardPage() {
   }, [user])
 
   if (loading) {
-    return <div>Loading...</div>
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
   }
 
+  const upcomingBookings = bookings.filter(booking => 
+    booking.status === "confirmed" && new Date(booking.date) > new Date()
+  )
+
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8">My Dashboard</h1>
+    <div className="container mx-auto py-8 px-4">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Welcome back, {user?.email?.split('@')[0]}</h1>
+        <Button onClick={() => router.push("/booking")}>
+          Book New Session
+        </Button>
+      </div>
       
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <Card>
-          <CardHeader>
-            <CardTitle>My Bookings</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{bookings.length}</p>
-            <Button 
-              variant="outline" 
-              className="mt-4"
-              onClick={() => router.push("/booking")}
-            >
-              View All Bookings
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Upcoming Sessions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {bookings.filter(b => b.status === "confirmed").length}
+            <div className="text-2xl font-bold">{bookings.length}</div>
+            <p className="text-xs text-muted-foreground">
+              All your scheduled sessions
             </p>
-            <Button 
-              variant="outline" 
-              className="mt-4"
-              onClick={() => router.push("/booking")}
-            >
-              Schedule New Session
-            </Button>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Profile</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Upcoming Sessions</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">{user?.email}</p>
+            <div className="text-2xl font-bold">{upcomingBookings.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Confirmed upcoming sessions
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Requests</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {bookings.filter(b => b.status === "pending").length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Awaiting confirmation
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Profile</CardTitle>
+            <User className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm font-medium truncate">{user?.email}</div>
             <Button 
               variant="outline" 
-              className="mt-4"
+              className="mt-2 w-full"
               onClick={() => router.push("/profile")}
             >
               Edit Profile
@@ -82,13 +104,46 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="mt-8">
-        <h2 className="text-2xl font-bold mb-4">Recent Bookings</h2>
-        <div className="space-y-4">
-          {bookings.slice(0, 5).map((booking) => (
-            <Card key={booking.id}>
-              <CardContent className="pt-6">
-                <div className="flex justify-between items-center">
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Upcoming Sessions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {upcomingBookings.length === 0 ? (
+                <p className="text-muted-foreground">No upcoming sessions</p>
+              ) : (
+                upcomingBookings.map((booking) => (
+                  <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <p className="font-medium">{booking.serviceType}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(booking.date).toLocaleDateString()} at{" "}
+                        {new Date(booking.date).toLocaleTimeString()}
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline"
+                      onClick={() => router.push(`/booking/${booking.id}`)}
+                    >
+                      View Details
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {bookings.slice(0, 5).map((booking) => (
+                <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <p className="font-medium">{booking.serviceType}</p>
                     <p className="text-sm text-muted-foreground">
@@ -103,10 +158,10 @@ export default function DashboardPage() {
                     {booking.status}
                   </span>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
