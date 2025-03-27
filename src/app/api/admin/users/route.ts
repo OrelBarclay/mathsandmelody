@@ -4,7 +4,7 @@ import { adminAuth } from "@/lib/firebase-admin"
 
 export async function GET() {
   try {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const sessionCookie = cookieStore.get("session")?.value
 
     if (!sessionCookie) {
@@ -42,7 +42,7 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const sessionCookie = cookieStore.get("session")?.value
 
     if (!sessionCookie) {
