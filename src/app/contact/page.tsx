@@ -23,7 +23,7 @@ export default function ContactPage() {
     <MainLayout>
       <div className="container py-8 md:py-12 lg:py-24">
         <div className="mx-auto flex max-w-[980px] flex-col items-center gap-2 text-center">
-          <h1 className="text-3xl font-bold leading-tight tracking-tighter md:text-5xl lg:leading-[1.1]">
+          <h1 className="text-3xl text-primary font-bold leading-tight tracking-tighter md:text-5xl lg:leading-[1.1]">
             Contact Us
           </h1>
           <p className="max-w-[750px] text-lg text-muted-foreground sm:text-xl">
