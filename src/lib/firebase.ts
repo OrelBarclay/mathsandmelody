@@ -12,11 +12,15 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-// Initialize Firebase
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
-const auth = getAuth(app)
-const db = getFirestore(app)
-const storage = getStorage(app)
+// Only initialize Firebase if we have all required config
+const app = getApps().length === 0 && firebaseConfig.apiKey
+  ? initializeApp(firebaseConfig)
+  : getApps()[0]
+
+// Only initialize services if we have an app
+const auth = app ? getAuth(app) : null
+const db = app ? getFirestore(app) : null
+const storage = app ? getStorage(app) : null
 
 // Initialize auth providers
 const googleProvider = new GoogleAuthProvider()
