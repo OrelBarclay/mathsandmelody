@@ -28,7 +28,7 @@ export async function createBooking(data: BookingData) {
     const priceId = servicePrices[data.service as keyof typeof servicePrices][data.paymentType]
 
     if (!priceId) {
-      throw new Error("Invalid service or payment type")
+      throw new Error("Invalid service or payment type") 
     }
 
     return {
