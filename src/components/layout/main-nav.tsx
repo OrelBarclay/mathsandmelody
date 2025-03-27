@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Menu, X } from "lucide-react"
 import { useState } from "react"
-import { ThemeToggle } from "@/components/layout/theme-toggle"
+
+
 export function MainNav() {
   const pathname = usePathname()
   const { user, signOut } = useAuth()
@@ -97,7 +98,7 @@ export function MainNav() {
             </Link>
           </>
         )}
-        <ThemeToggle />
+        {/* <ThemeToggle /> */}
       </div>
 
       {/* Mobile navigation menu */}

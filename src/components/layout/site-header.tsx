@@ -5,6 +5,7 @@ import Image from "next/image"
 import { useTheme } from "next-themes"
 import { MainNav } from "@/components/layout/main-nav"
 import { useEffect, useState } from "react"
+import { ThemeToggle } from "./theme-toggle"
 
 function Logo() {
   const { resolvedTheme } = useTheme()
@@ -46,12 +47,12 @@ export function SiteHeader() {
         <div className="mr-4 flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <Logo />
-            <span className="font-bold hidden md:block text-primary text-2xl">Math & Melody Academy</span>
+            <span className="font-bold text-primary text-[3hw] md:text-2xl">Math & Melody Academy</span>
           </Link>
         </div>
-        <div className="flex flex-1 items-center justify-between space-x-2 sm:justify-end">
+        <div className="flex flex-1  justify-end">
           <MainNav />
-          {/* <ThemeToggle /> */}
+          <ThemeToggle />
         </div>
       </div>
     </header>
