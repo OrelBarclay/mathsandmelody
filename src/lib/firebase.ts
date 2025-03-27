@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from "firebase/app"
-import { getAuth, GoogleAuthProvider, GithubAuthProvider } from "firebase/auth"
+import { getAuth, GoogleAuthProvider, GithubAuthProvider, Auth } from "firebase/auth"
 import { getFirestore, Firestore } from "firebase/firestore"
 import { getStorage } from "firebase/storage"
 
@@ -37,7 +37,7 @@ try {
 }
 
 // Initialize services
-let auth = null
+let auth: Auth | null = null
 let db: Firestore | null = null
 let storage = null
 
