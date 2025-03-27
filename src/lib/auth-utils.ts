@@ -8,6 +8,7 @@ export async function verifySession(session: string) {
       isAdmin: decodedToken.admin === true
     }
   } catch (error) {
+    console.error("Session verification error:", error)
     return null
   }
 } 

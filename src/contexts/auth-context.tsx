@@ -19,13 +19,16 @@ interface AuthContextType {
   signOut: () => Promise<void>
   signInWithGoogle: () => Promise<void>
   signInWithGithub: () => Promise<void>
-}
+  isAuthenticated: boolean
+  }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const isAuthenticated = !!user
 
   useEffect(() => {
     if (!auth) {
@@ -76,6 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signOut: handleSignOut,
         signInWithGoogle,
         signInWithGithub,
+        isAuthenticated,
       }}
     >
       {children}
