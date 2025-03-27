@@ -1,36 +1,42 @@
 import { NextResponse } from "next/server"
-import { adminAuth, setUserRole, getUserRole } from "@/lib/firebase-admin"
 import { cookies } from "next/headers"
+import { adminAuth } from "@/lib/firebase-admin"
 
 export async function GET() {
   try {
     const cookieStore = cookies()
     const sessionCookie = cookieStore.get("session")?.value
+
     if (!sessionCookie) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Verify the session cookie
     const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie)
-    const userRole = await getUserRole(decodedClaims.uid)
+    const userRecord = await adminAuth.getUser(decodedClaims.uid)
 
-    if (userRole !== "admin") {
+    // Check if user is admin
+    const isAdmin = userRecord.customClaims?.admin === true
+    if (!isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const users = await adminAuth.listUsers()
-    const usersWithRoles = await Promise.all(
-      users.users.map(async (user) => ({
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        role: await getUserRole(user.uid),
-      }))
-    )
+    // Get all users
+    const listUsersResult = await adminAuth.listUsers()
+    const users = listUsersResult.users.map((user) => ({
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      role: user.customClaims?.role || "student",
+    }))
 
-    return NextResponse.json({ users: usersWithRoles })
+    return NextResponse.json({ users })
   } catch (error) {
     console.error("Error fetching users:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to fetch users" },
+      { status: 500 }
+    )
   }
 }
 
@@ -38,30 +44,39 @@ export async function PATCH(request: Request) {
   try {
     const cookieStore = cookies()
     const sessionCookie = cookieStore.get("session")?.value
+
     if (!sessionCookie) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Verify the session cookie
     const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie)
-    const userRole = await getUserRole(decodedClaims.uid)
+    const userRecord = await adminAuth.getUser(decodedClaims.uid)
 
-    if (userRole !== "admin") {
+    // Check if user is admin
+    const isAdmin = userRecord.customClaims?.admin === true
+    if (!isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const { uid, role } = await request.json()
-    if (!uid || !role) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    const { userId, role } = await request.json()
+
+    if (!userId || !role) {
+      return NextResponse.json(
+        { error: "User ID and role are required" },
+        { status: 400 }
+      )
     }
 
-    const success = await setUserRole(uid, role)
-    if (!success) {
-      return NextResponse.json({ error: "Failed to update user role" }, { status: 500 })
-    }
+    // Update user role
+    await adminAuth.setCustomUserClaims(userId, { role })
 
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Error updating user role:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to update user role" },
+      { status: 500 }
+    )
   }
 } 

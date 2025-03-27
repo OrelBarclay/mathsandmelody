@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { MainLayout } from "@/components/layout/main-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,25 +16,23 @@ import { useToast } from "@/components/ui/use-toast"
 
 interface User {
   uid: string
-  email: string
+  email: string | null
   displayName: string | null
-  role: "student" | "admin" | "tutor"
+  role: string
 }
 
 export default function AdminUsersPage() {
-  const { user, isAdmin } = useAuth()
+  const { user } = useAuth()
   const { toast } = useToast()
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchUsers()
-  }, [])
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const response = await fetch("/api/admin/users")
-      if (!response.ok) throw new Error("Failed to fetch users")
+      if (!response.ok) {
+        throw new Error("Failed to fetch users")
+      }
       const data = await response.json()
       setUsers(data.users)
     } catch (error) {
@@ -47,25 +45,40 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [toast])
 
-  const updateUserRole = async (uid: string, newRole: string) => {
+  useEffect(() => {
+    if (user?.role === "admin") {
+      fetchUsers()
+    } else {
+      setLoading(false)
+    }
+  }, [user, fetchUsers])
+
+  const handleRoleChange = async (userId: string, newRole: string) => {
     try {
       const response = await fetch("/api/admin/users", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid, role: newRole }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId, role: newRole }),
       })
 
-      if (!response.ok) throw new Error("Failed to update user role")
+      if (!response.ok) {
+        throw new Error("Failed to update user role")
+      }
+
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
+          u.uid === userId ? { ...u, role: newRole } : u
+        )
+      )
 
       toast({
         title: "Success",
         description: "User role updated successfully",
       })
-
-      // Refresh users list
-      fetchUsers()
     } catch (error) {
       console.error("Error updating user role:", error)
       toast({
@@ -76,7 +89,7 @@ export default function AdminUsersPage() {
     }
   }
 
-  if (!isAdmin) {
+  if (!user?.role || user.role !== "admin") {
     return (
       <MainLayout>
         <div className="container mx-auto py-8 px-4">
@@ -121,8 +134,8 @@ export default function AdminUsersPage() {
                   </div>
                   <div className="flex items-center gap-4">
                     <Select
-                      defaultValue={user.role}
-                      onValueChange={(value) => updateUserRole(user.uid, value)}
+                      value={user.role}
+                      onValueChange={(value) => handleRoleChange(user.uid, value)}
                     >
                       <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Select role" />
