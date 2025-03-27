@@ -3,6 +3,16 @@ import { getAuth, GoogleAuthProvider, GithubAuthProvider, Auth } from "firebase/
 import { getFirestore, Firestore } from "firebase/firestore"
 import { getStorage } from "firebase/storage"
 
+// Log environment variables (without sensitive values)
+console.log('Environment check:', {
+  hasApiKey: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  hasAuthDomain: !!process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  hasProjectId: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  hasStorageBucket: !!process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  hasMessagingSenderId: !!process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  hasAppId: !!process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+})
+
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -12,24 +22,12 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-// Validate required config
-const requiredFields = [
-  'apiKey',
-  'authDomain',
-  'projectId',
-  'storageBucket',
-  'messagingSenderId',
-  'appId'
-] as const
-
-const missingFields = requiredFields.filter(field => !firebaseConfig[field])
-if (missingFields.length > 0) {
-  console.error('Missing required Firebase config fields:', missingFields)
-}
-
 // Initialize Firebase
 let app
 try {
+  if (!firebaseConfig.apiKey) {
+    throw new Error('Firebase API key is missing')
+  }
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
 } catch (error) {
   console.error('Error initializing Firebase:', error)
