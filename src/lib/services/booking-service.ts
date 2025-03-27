@@ -15,10 +15,13 @@ export interface Booking {
 }
 
 export class BookingService {
-  private collection = collection(db, "bookings")
+  private getCollection() {
+    if (!db) throw new Error("Firestore is not initialized")
+    return collection(db, "bookings")
+  }
 
   async createBooking(booking: Omit<Booking, "id" | "createdAt" | "updatedAt">): Promise<Booking> {
-    const docRef = await addDoc(this.collection, {
+    const docRef = await addDoc(this.getCollection(), {
       ...booking,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
@@ -33,7 +36,7 @@ export class BookingService {
   }
 
   async getBookingsByUserId(userId: string): Promise<Booking[]> {
-    const q = query(this.collection, where("userId", "==", userId))
+    const q = query(this.getCollection(), where("userId", "==", userId))
     const querySnapshot = await getDocs(q)
     return querySnapshot.docs.map((doc) => ({
       id: doc.id,
@@ -45,7 +48,7 @@ export class BookingService {
   }
 
   async getAllBookings(): Promise<Booking[]> {
-    const querySnapshot = await getDocs(this.collection)
+    const querySnapshot = await getDocs(this.getCollection())
     return querySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
@@ -56,7 +59,7 @@ export class BookingService {
   }
 
   async updateBookingStatus(bookingId: string, status: Booking["status"]): Promise<void> {
-    const docRef = doc(this.collection, bookingId)
+    const docRef = doc(this.getCollection(), bookingId)
     await updateDoc(docRef, {
       status,
       updatedAt: Timestamp.now(),
@@ -64,7 +67,7 @@ export class BookingService {
   }
 
   async deleteBooking(bookingId: string): Promise<void> {
-    const docRef = doc(this.collection, bookingId)
+    const docRef = doc(this.getCollection(), bookingId)
     await deleteDoc(docRef)
   }
 } 
