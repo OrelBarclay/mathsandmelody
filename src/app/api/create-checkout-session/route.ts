@@ -1,12 +1,19 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia",
-})
+// Only initialize Stripe if we have a secret key
+const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2025-02-24.acacia",
+    })
+  : null
 
 export async function POST(request: Request) {
   try {
+    if (!stripe) {
+      throw new Error("Stripe is not initialized")
+    }
+
     const { bookingId, amount, currency } = await request.json()
 
     const session = await stripe.checkout.sessions.create({
