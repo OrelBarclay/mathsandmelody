@@ -34,7 +34,7 @@ export default function BookingSuccessPage() {
               </p>
               <div className="flex justify-center gap-4">
                 <Button asChild>
-                  <Link href="/dashboard">View Dashboard</Link>
+                  <Link href="/">View Dashboard</Link>
                 </Button>
                 <Button variant="outline" asChild>
                   <Link href="/">Return Home</Link>
