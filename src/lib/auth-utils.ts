@@ -1,8 +1,8 @@
-import { auth } from "@/lib/firebase-admin"
+import { adminAuth } from "@/lib/firebase-admin"
 
 export async function verifySession(session: string) {
   try {
-    const decodedToken = await auth.verifySessionCookie(session)
+    const decodedToken = await adminAuth.verifySessionCookie(session)
     return {
       uid: decodedToken.uid,
       isAdmin: decodedToken.admin === true
