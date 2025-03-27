@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "create-admin": "ts-node --project scripts/tsconfig.json scripts/create-admin.ts"
   },
   "dependencies": {
     "@firebase/auth": "^1.9.1",
@@ -29,6 +30,7 @@
     "@types/react-datepicker": "^7.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dotenv": "^16.4.7",
     "emailjs-com": "^3.2.0",
     "firebase": "^11.5.0",
     "firebase-admin": "^13.2.0",
@@ -53,6 +55,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

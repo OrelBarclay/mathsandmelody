@@ -9,7 +9,30 @@ const firebaseAdminConfig = {
   }),
 }
 
-const app = getApps().length === 0 ? initializeApp(firebaseAdminConfig) : getApps()[0]
-const auth = getAuth(app)
+const apps = getApps()
 
-export { auth } 
+if (!apps.length) {
+  initializeApp(firebaseAdminConfig)
+}
+
+export const adminAuth = getAuth()
+
+export async function setUserRole(uid: string, role: "student" | "admin" | "tutor") {
+  try {
+    await adminAuth.setCustomUserClaims(uid, { role })
+    return true
+  } catch (error) {
+    console.error("Error setting user role:", error)
+    return false
+  }
+}
+
+export async function getUserRole(uid: string) {
+  try {
+    const user = await adminAuth.getUser(uid)
+    return user.customClaims?.role as "student" | "admin" | "tutor" || "student"
+  } catch (error) {
+    console.error("Error getting user role:", error)
+    return "student"
+  }
+} 
