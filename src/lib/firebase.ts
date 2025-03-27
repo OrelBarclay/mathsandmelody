@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from "firebase/app"
 import { getAuth, GoogleAuthProvider, GithubAuthProvider } from "firebase/auth"
-import { getFirestore } from "firebase/firestore"
+import { getFirestore, Firestore } from "firebase/firestore"
 import { getStorage } from "firebase/storage"
 
 const firebaseConfig = {
@@ -12,15 +12,44 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-// Only initialize Firebase if we have all required config
-const app = getApps().length === 0 && firebaseConfig.apiKey
-  ? initializeApp(firebaseConfig)
-  : getApps()[0]
+// Validate required config
+const requiredFields = [
+  'apiKey',
+  'authDomain',
+  'projectId',
+  'storageBucket',
+  'messagingSenderId',
+  'appId'
+] as const
 
-// Only initialize services if we have an app
-const auth = app ? getAuth(app) : null
-const db = app ? getFirestore(app) : null
-const storage = app ? getStorage(app) : null
+const missingFields = requiredFields.filter(field => !firebaseConfig[field])
+if (missingFields.length > 0) {
+  console.error('Missing required Firebase config fields:', missingFields)
+}
+
+// Initialize Firebase
+let app
+try {
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+} catch (error) {
+  console.error('Error initializing Firebase:', error)
+  app = null
+}
+
+// Initialize services
+let auth = null
+let db: Firestore | null = null
+let storage = null
+
+if (app) {
+  try {
+    auth = getAuth(app)
+    db = getFirestore(app)
+    storage = getStorage(app)
+  } catch (error) {
+    console.error('Error initializing Firebase services:', error)
+  }
+}
 
 // Initialize auth providers
 const googleProvider = new GoogleAuthProvider()
