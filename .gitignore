@@ -59,3 +59,4 @@ service-account.json
 .vscode/
 *.swp
 *.swo
+service-account.json
