@@ -62,6 +62,7 @@ export async function middleware(request: NextRequest) {
     // If trying to access dashboard routes
     if (request.nextUrl.pathname.startsWith("/dashboard")) {
       if (isAdmin) {
+        console.log("Redirecting to admin dashboard")
         return NextResponse.redirect(new URL("/admin", request.url))
       }
     }
