@@ -1,33 +1,32 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
-import { adminAuth } from "@/lib/firebase-admin"
+import { auth } from "@/lib/firebase-admin"
 
 export async function GET() {
   try {
     const cookieStore = await cookies()
-    const sessionCookie = cookieStore.get("session")?.value
+    const session = cookieStore.get("session")?.value
 
-    if (!sessionCookie) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Verify the session cookie
-    const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie)
-    const userRecord = await adminAuth.getUser(decodedClaims.uid)
-
-    // Check if user is admin
-    const isAdmin = userRecord.customClaims?.admin === true
-    if (!isAdmin) {
+    // Verify admin role
+    const decodedToken = await auth.verifySessionCookie(session)
+    const customClaims = JSON.parse(decodedToken.customAttributes || "{}")
+    if (customClaims.role !== "admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     // Get all users
-    const listUsersResult = await adminAuth.listUsers()
+    const listUsersResult = await auth.listUsers()
     const users = listUsersResult.users.map((user) => ({
       uid: user.uid,
       email: user.email,
       displayName: user.displayName,
-      role: user.customClaims?.role || "student",
+      role: JSON.parse(user.customClaims?.customAttributes || "{}").role || "student",
+      createdAt: user.metadata.creationTime,
+      lastSignIn: user.metadata.lastSignInTime,
     }))
 
     return NextResponse.json({ users })
@@ -50,8 +49,8 @@ export async function PATCH(request: Request) {
     }
 
     // Verify the session cookie
-    const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie)
-    const userRecord = await adminAuth.getUser(decodedClaims.uid)
+    const decodedClaims = await auth.verifySessionCookie(sessionCookie)
+    const userRecord = await auth.getUser(decodedClaims.uid)
 
     // Check if user is admin
     const isAdmin = userRecord.customClaims?.admin === true
@@ -69,7 +68,7 @@ export async function PATCH(request: Request) {
     }
 
     // Update user role
-    await adminAuth.setCustomUserClaims(userId, { role })
+    await auth.setCustomUserClaims(userId, { role })
 
     return NextResponse.json({ success: true })
   } catch (error) {

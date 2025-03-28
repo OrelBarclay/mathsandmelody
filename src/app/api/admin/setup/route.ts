@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { adminAuth, setUserRole } from "@/lib/firebase-admin"
+import { auth, setUserRole } from "@/lib/firebase-admin"
 
 export async function POST(request: Request) {
   try {
@@ -15,12 +15,12 @@ export async function POST(request: Request) {
     let userRecord
     try {
       // Try to get existing user
-      userRecord = await adminAuth.getUserByEmail(email)
+      userRecord = await auth.getUserByEmail(email)
     } catch (error) {
       // If user doesn't exist, create new user
       const firebaseError = error as { code?: string }
       if (firebaseError.code === 'auth/user-not-found') {
-        userRecord = await adminAuth.createUser({
+        userRecord = await auth.createUser({
           email,
           password,
           emailVerified: true,
