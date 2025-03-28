@@ -70,6 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user)
       if (user) {
+        console.log("user", user)
         await checkUserRole(user)
       } else {
         setUserRole(null)
@@ -84,17 +85,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!auth) throw new Error("Firebase Auth is not initialized")
     const result = await signInWithEmailAndPassword(auth, email, password)
     await checkUserRole(result.user)
+    
+    // Create session cookie
+    const idToken = await result.user.getIdToken()
+    const response = await fetch("/api/auth/session", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ idToken }),
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to create session")
+    }
   }
 
   const signUp = async (email: string, password: string) => {
     if (!auth) throw new Error("Firebase Auth is not initialized")
     const result = await createUserWithEmailAndPassword(auth, email, password)
     await checkUserRole(result.user)
+    
+    // Create session cookie
+    const idToken = await result.user.getIdToken()
+    const response = await fetch("/api/auth/session", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ idToken }),
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to create session")
+    }
   }
 
   const logout = async () => {
     if (!auth) throw new Error("Firebase Auth is not initialized")
     await signOut(auth)
+    
+    // Clear session cookie
+    await fetch("/api/auth/session", {
+      method: "DELETE",
+    })
   }
 
   const resetPassword = async (email: string) => {
@@ -137,12 +171,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!auth) throw new Error("Firebase Auth is not initialized")
     const result = await signInWithPopup(auth, googleProvider)
     await checkUserRole(result.user)
+    
+    // Create session cookie
+    const idToken = await result.user.getIdToken()
+    const response = await fetch("/api/auth/session", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ idToken }),
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to create session")
+    }
   }
 
   const signInWithGithub = async () => {
     if (!auth) throw new Error("Firebase Auth is not initialized")
     const result = await signInWithPopup(auth, githubProvider)
     await checkUserRole(result.user)
+    
+    // Create session cookie
+    const idToken = await result.user.getIdToken()
+    const response = await fetch("/api/auth/session", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ idToken }),
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to create session")
+    }
   }
 
   const value = {
