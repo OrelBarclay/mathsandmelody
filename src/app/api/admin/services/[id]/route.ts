@@ -1,9 +1,13 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db, auth } from "@/lib/firebase-admin";
 
+type RouteParams = {
+  id: string;
+};
+
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: RouteParams }
 ) {
   try {
     const session = request.headers.get("cookie")?.split("session=")[1]?.split(";")[0];
@@ -30,8 +34,8 @@ export async function PUT(
       updatedAt: new Date().toISOString(),
     };
 
-    await db.collection("services").doc(context.params.id).update(serviceData);
-    const service = { id: context.params.id, ...serviceData };
+    await db.collection("services").doc(params.id).update(serviceData);
+    const service = { id: params.id, ...serviceData };
 
     return NextResponse.json(service);
   } catch (error) {
@@ -45,7 +49,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: RouteParams }
 ) {
   try {
     const session = request.headers.get("cookie")?.split("session=")[1]?.split(";")[0];
@@ -60,7 +64,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    await db.collection("services").doc(context.params.id).delete();
+    await db.collection("services").doc(params.id).delete();
 
     return NextResponse.json({ success: true });
   } catch (error) {
