@@ -3,7 +3,7 @@ import { db, auth } from "@/lib/firebase-admin";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = request.headers.get("cookie")?.split("session=")[1]?.split(";")[0];
@@ -30,8 +30,8 @@ export async function PUT(
       updatedAt: new Date().toISOString(),
     };
 
-    await db.collection("services").doc(params.id).update(serviceData);
-    const service = { id: params.id, ...serviceData };
+    await db.collection("services").doc(context.params.id).update(serviceData);
+    const service = { id: context.params.id, ...serviceData };
 
     return NextResponse.json(service);
   } catch (error) {
