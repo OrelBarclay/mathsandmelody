@@ -7,7 +7,7 @@ runConfig:
   # cpu: 1
   # memoryMiB: 512
 
-# Environment variables and secrets.
+# Environment variables
 env:
   # Firebase Configuration
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
@@ -53,7 +53,7 @@ env:
       - BUILD
       - RUNTIME
   - variable: STRIPE_SECRET_KEY
-    secret: stripe-secret-key
+    value: sk_test_51R7Hd9Ghy64FBZDI28FjMLeX7hT9AXtxUnp9XBp1uyEqRvyzwt1WHUMBO2BasScAB47swLEnxnGqolhMqvPhEPuT001iCw14cI
     availability:
       - BUILD
       - RUNTIME
@@ -114,7 +114,7 @@ env:
       - BUILD
       - RUNTIME
   - variable: FIREBASE_PRIVATE_KEY
-    secret: firebase-private-key
+    value: "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCKHGWFwBHRglzk\nST2eTGxU8gu4x7r+DV9ppLH4UIrUl7o01wTSC9wbVNACAu0CaCNmClGNAIBPOIdi\n6AeCiMsJFPshVkq+MjHWXxyP/AdGPjGjBZXlD3hGV89qP39OidNwFNThKdxJdnSl\nWOSWK7qS78kVHCJbC7PXv/p9YIRa+JeFgDzCVcK6+lShCC2zUHHbei/Jxe3WaAE4\ne0X+PTI55besXL88+mhO5/hf98gu6pq39WaKCbbYczDnhQlGDKH+OGuUlyxkeqh5\nDOIihznWIiutKh5E3ik28+80CUBChJjmfiiJWr3H+FnF2gAmEmbpC7fWvMvuWQFA\nNyiElpDjAgMBAAECggEAO6luteu2BtKQ/FEjXDnZZoy1QZqOjecK+6EY/JMWliYB\nW4gzXeWfrPLjdKr85dhEynTUq9u2kgJygeiILfyX8RFuNwWG/kjCvL+ToCOYpOCD\nItBr42reY0zVnilV/oCNpVJqb+ZcciPI2hDflnvHemg5bnQb50bT5vTY6caDBqTQ\nmK+grnYpFg9+lhfjstxLb0tdrv34jjKGPjzGCgZMQWGcMhyL/pIoTrNQIdkfm9VR\n1xiitcJE4QD411cwZKmcihju5l3N1cEmST8yia+e9LiOzRmiy0Q0zVGE3vKAFK6T\noBC3CHBMXrRBqvRHXge2zmjHdQg3sf+chBDObwSFqQKBgQDAPH0YBmoO+v/dLHRK\nj/Q6u1hEIlh0NwPjf4fLzmkbChG7Dd/qUavRDjPANQzT8BUT+l9k0gfrRm/nY0/r\nxvZ9pu+E6vDKcGBPTHuuHNnym2guflEJXv2al8ZxENS1iWrXS2BuGwou0MwAF7U0\nLc2fukuvkA5vO147WX6QFcUShwKBgQC36+skPrYzxUEALjbcVyoQOo5nFG/pXgpw\nPJl8D3i90s9VcgBRDW6FTgkzm9r2g/bL3bo7fwyKdmO8K+hwGaz6DVvTq8AdlCdn\nvOOQQ9VCDdXVvjh9OvUS4Wtp3DW3lwOG+BQECzvfAk7OwCXOfWZFzXLIvJjjiavI\naK9U3Eb5xQKBgA82+mOjZlOHNCcKNK4OFLNtToAeA8g27nzcBCByVslIE70tTPKb\nwjCKojftOvWvQ8vP/irZoLzTV1oF9zZfCfVJ+B0aBzLOkCDWmdde+zUDbcx4POuz\n8/h/WLpsLZmspaMimSA9zaGE7xB2z+WwVlz0/raHfUz6cuvZmnXG81ETAoGAJEIm\nQSb71Ij2n4p81kN4z2o72KZ2yZL4i9fmikaijwmYRkgLN+9l8nHH7pyzNhYd+WLk\n7AXH+yQL1XTyhecJ6uHnUHtzjGFAw3rBghddW4BOv6yYhlexKN+3xU7caC0lTN5r\nU8DDNNvHnYrT6TlfiDNQhbJokbL6YrAAoMIsW+ECgYEArZ9LmGt+mZ4VUPdHvVSe\n0aZgBIdVwYHIYrPEwaE6PZXsAz9CMpZjSrC0WvTNefc8qW301FTd37j252UxIxm4\nQ0pSKiOw0GvuSQVCDeXvgPWk+l8XDt5SeiZlLVdizKtDQ9iofmi3ogCCTUbihdEG\nyXEs/6FhmkAYCUytm8G9PyM=\n-----END PRIVATE KEY-----\n"
     availability:
       - BUILD
       - RUNTIME
