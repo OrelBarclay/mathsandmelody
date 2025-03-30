@@ -1,10 +1,11 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db, auth } from "@/lib/firebase-admin";
+import type { Route } from 'next'; // Import the Route type
 
-export async function PUT(
+export const PUT: Route<{ params: { id: string } }> = async (
   request: NextRequest,
-  context: { params: { id: string } }
-) {
+  context: { params: { id: string; }; }
+) => {
   try {
     const session = request.headers.get("cookie")?.split("session=")[1]?.split(";")[0];
     if (!session) {
@@ -41,7 +42,9 @@ export async function PUT(
       { status: 500 }
     );
   }
-}
+};
+
+
 
 export async function DELETE(
   request: NextRequest,
