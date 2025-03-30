@@ -8,16 +8,118 @@ runConfig:
   # memoryMiB: 512
 
 # Environment variables and secrets.
-# env:
-  # Configure environment variables.
-  # See https://firebase.google.com/docs/app-hosting/configure#user-defined-environment
-  # - variable: MESSAGE
-  #   value: Hello world!
-  #   availability:
-  #     - BUILD
-  #     - RUNTIME
+env:
+  # Firebase Configuration
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: AIzaSyD0XObk_J9POLp8Z8dKpUd_VSI3OmcRRks
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: mathandmelody-a677f.firebaseapp.com
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: mathandmelody-a677f
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: mathandmelody-a677f.firebasestorage.app
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "417011127689"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:417011127689:web:3509abac4a6250b0463d58"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    value: G-KCBFTYG86Y
+    availability:
+      - BUILD
+      - RUNTIME
 
-  # Grant access to secrets in Cloud Secret Manager.
-  # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
-  # - variable: MY_SECRET
-  #   secret: mySecretRef
+  # Stripe Configuration
+  - variable: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+    value: pk_test_51R7Hd9Ghy64FBZDITx8S0CulOgRXfGT3JB45ZeFyOnY00Vdn2xw4FQZc4eGX7y42dk1kB4fvQYoDQFW13RN1BdPO00WjvJjWfn
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: STRIPE_SECRET_KEY
+    secret: stripe-secret-key
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Stripe Price IDs
+  - variable: NEXT_PUBLIC_MATH_ONE_TIME_PRICE_ID
+    value: price_1Q7Hd9Ghy64FBZDI28FjMLeX
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_MATH_SUBSCRIPTION_PRICE_ID
+    value: price_1Q7Hd9Ghy64FBZDI28FjMLeX
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_MUSIC_ONE_TIME_PRICE_ID
+    value: price_1Q7Hd9Ghy64FBZDI28FjMLeX
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_MUSIC_SUBSCRIPTION_PRICE_ID
+    value: price_1Q7Hd9Ghy64FBZDI28FjMLeX
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_SPORTS_ONE_TIME_PRICE_ID
+    value: price_1Q7Hd9Ghy64FBZDI28FjMLeX
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_SPORTS_SUBSCRIPTION_PRICE_ID
+    value: price_1Q7Hd9Ghy64FBZDI28FjMLeX
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Application URLs
+  - variable: NEXT_PUBLIC_BASE_URL
+    value: https://mathsandmelody--mathandmelody-a677f.us-central1.hosted.app
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_APP_URL
+    value: https://mathsandmelody--mathandmelody-a677f.us-central1.hosted.app
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Firebase Admin SDK Configuration
+  - variable: FIREBASE_PROJECT_ID
+    value: mathandmelody-a677f
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: FIREBASE_CLIENT_EMAIL
+    value: firebase-adminsdk-fbsvc@mathandmelody-a677f.iam.gserviceaccount.com
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: FIREBASE_PRIVATE_KEY
+    secret: firebase-private-key
+    availability:
+      - BUILD
+      - RUNTIME
+
+# Grant access to secrets in Cloud Secret Manager.
+# See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
+# - variable: MY_SECRET
+#   secret: mySecretRef
