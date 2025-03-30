@@ -1,9 +1,13 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db, auth } from "@/lib/firebase-admin";
 
+type RouteParams = {
+  id: string;
+};
+
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: RouteParams }
 ) {
   try {
     const session = request.headers.get("cookie")?.split("session=")[1]?.split(";")[0];
@@ -45,7 +49,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: RouteParams }
 ) {
   try {
     const session = request.headers.get("cookie")?.split("session=")[1]?.split(";")[0];
