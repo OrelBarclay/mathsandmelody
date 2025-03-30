@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/firebase-admin"
 import { auth } from "@/lib/firebase-admin"
+import { NextRequest } from "next/server"
 
 export async function PUT(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -45,7 +46,7 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
