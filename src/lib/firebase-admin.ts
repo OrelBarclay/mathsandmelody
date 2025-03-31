@@ -18,7 +18,20 @@ export const db = getFirestore(); // Firestore (Server-side)
 
 export async function setUserRole(uid: string, role: "student" | "admin" | "tutor") {
   try {
-    await auth.setCustomUserClaims(uid, { role });
+    // Get current user to preserve existing claims
+    const user = await auth.getUser(uid);
+    const currentClaims = user.customClaims || {};
+
+    // Set new claims while preserving existing ones
+    await auth.setCustomUserClaims(uid, {
+      ...currentClaims,
+      role,
+    });
+
+    // Verify the claims were set
+    const updatedUser = await auth.getUser(uid);
+    console.log("Updated claims:", updatedUser.customClaims);
+
     return true;
   } catch (error) {
     console.error("Error setting user role:", error);
@@ -29,6 +42,8 @@ export async function setUserRole(uid: string, role: "student" | "admin" | "tuto
 export async function getUserRole(uid: string) {
   try {
     const user = await auth.getUser(uid);
+    console.log("User custom claims:", user.customClaims);
+    console.log("User:", user);
     return (user.customClaims?.role as "student" | "admin" | "tutor") || "student";
   } catch (error) {
     console.error("Error getting user role:", error);
