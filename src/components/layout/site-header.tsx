@@ -32,16 +32,16 @@ function useThemeLogo() {
       mounted,
       attemptedPath: imageSrc
     })
-    setError(true)
+    setError(true);
   }
-
+   
   return {
     mounted,
     error,
     imageSrc,
     handleError
   }
-}
+};
 
 function Logo() {
   const { error, imageSrc, handleError } = useThemeLogo()
@@ -52,7 +52,7 @@ function Logo() {
         <span className="text-primary font-bold text-xl">M&M</span>
       </div>
     )
-  }
+  };
 
   return (
     <Image
