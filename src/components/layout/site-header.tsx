@@ -16,6 +16,13 @@ function Logo() {
     setMounted(true)
   }, [])
 
+  const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error('Image failed to load:', e)
+    console.log('Current theme:', resolvedTheme)
+    console.log('Attempted to load:', resolvedTheme === "dark" ? "/darkLogo.png" : "/logo.png")
+    setError(true)
+  }
+
   if (error) {
     return (
       <div className="w-[110px] h-[110px] flex items-center justify-center bg-primary/10 rounded-lg">
@@ -33,7 +40,7 @@ function Logo() {
         width={110}
         height={110}
         priority
-        onError={() => setError(true)}
+        onError={handleError}
       />
     )
   }
@@ -46,7 +53,7 @@ function Logo() {
       width={110}
       height={110}
       priority
-      onError={() => setError(true)}
+      onError={handleError}
     />
   )
 }
