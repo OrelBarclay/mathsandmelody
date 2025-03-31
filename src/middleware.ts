@@ -42,29 +42,27 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    // Verify session with Firebase Auth REST API
-    const response = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${process.env.NEXT_PUBLIC_FIREBASE_API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          idToken: session,
-        }),
-      }
-    );
+    // Check admin status using our new endpoint
+    const response = await fetch(new URL("/api/auth/check-admin", request.url), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        idToken: session,
+      }),
+    });
 
     if (!response.ok) {
+      console.error("Admin check failed:", await response.text());
       throw new Error('Invalid session');
     }
 
     const data = await response.json();
-    const user = data.users[0];
+    const isAdmin = data.isAdmin;
     
-    // Check for admin role in customClaims
-    const isAdmin = user?.customClaims?.role === "admin";
+    console.log("User claims:", data.claims);
+    console.log("Is admin:", isAdmin);
 
     // If trying to access admin routes
     if (request.nextUrl.pathname.startsWith("/admin")) {
