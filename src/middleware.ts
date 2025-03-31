@@ -16,6 +16,7 @@ export async function middleware(request: NextRequest) {
     "/contact",
     "/about",
     "/blog",
+    "/__/auth", // Firebase Auth routes
   ];
 
   // Check if the current path is a public route
@@ -29,9 +30,17 @@ export async function middleware(request: NextRequest) {
       : request.nextUrl.pathname.startsWith(route);
   });
 
+  // Create response
+  const response = NextResponse.next();
+
+  // Add security headers
+  response.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  response.headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
+  response.headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
+
   // Allow access to public routes without authentication
   if (isPublicRoute) {
-    return NextResponse.next();
+    return response;
   }
 
   const session = request.cookies.get("session")?.value;
@@ -77,7 +86,7 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    return NextResponse.next();
+    return response;
   } catch (error) {
     console.error("Session verification error:", error);
     return NextResponse.redirect(new URL("/auth/signin", request.url));
