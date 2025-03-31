@@ -61,12 +61,9 @@ export async function middleware(request: NextRequest) {
     const data = await response.json();
     const isAdmin = data.isAdmin;
     
-    console.log("User claims:", data.claims);
-    console.log("Is admin:", isAdmin);
 
     // If trying to access admin routes
     if (request.nextUrl.pathname.startsWith("/admin")) {
-      console.log("Checking admin access:", isAdmin);
       if (!isAdmin) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
@@ -75,10 +72,9 @@ export async function middleware(request: NextRequest) {
     // If trying to access dashboard routes
     if (request.nextUrl.pathname.startsWith("/dashboard")) {
       if (isAdmin) {
-        console.log("Admin user, redirecting to admin dashboard");
+
         return NextResponse.redirect(new URL("/admin", request.url));
       }
-      console.log("Regular user, allowing access to dashboard");
     }
 
     return NextResponse.next();

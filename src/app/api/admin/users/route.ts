@@ -11,15 +11,15 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Verify admin role
-    const decodedToken = await auth.verifySessionCookie(session)
-    const customClaims = JSON.parse(decodedToken.customAttributes || "{}")
-    if (customClaims.role !== "admin") {
+    // Verify admin role using ID token
+    const decodedToken = await auth.verifyIdToken(session)
+    if (decodedToken.role !== "admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     // Get all users
-    const listUsersResult = await auth.listUsers()
+    const listUsersResult = await auth.listUsers();
+    console.log("List users result:", listUsersResult);
     const users = listUsersResult.users.map((user) => ({
       uid: user.uid,
       email: user.email,
@@ -42,19 +42,15 @@ export async function GET() {
 export async function PATCH(request: Request) {
   try {
     const cookieStore = await cookies()
-    const sessionCookie = cookieStore.get("session")?.value
+    const session = cookieStore.get("session")?.value
 
-    if (!sessionCookie) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Verify the session cookie
-    const decodedClaims = await auth.verifySessionCookie(sessionCookie)
-    const userRecord = await auth.getUser(decodedClaims.uid)
-
-    // Check if user is admin
-    const isAdmin = userRecord.customClaims?.admin === true
-    if (!isAdmin) {
+    // Verify admin role using ID token
+    const decodedToken = await auth.verifyIdToken(session)
+    if (decodedToken.role !== "admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
