@@ -52,7 +52,7 @@ export async function middleware(request: NextRequest) {
 
   try {
     // Check admin status using our new endpoint
-    const response = await fetch(new URL("/api/auth/check-admin", request.url), {
+    const adminCheckResponse = await fetch(new URL("/api/auth/check-admin", request.url), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -62,14 +62,13 @@ export async function middleware(request: NextRequest) {
       }),
     });
 
-    if (!response.ok) {
-      console.error("Admin check failed:", await response.text());
+    if (!adminCheckResponse.ok) {
+      console.error("Admin check failed:", await adminCheckResponse.text());
       throw new Error('Invalid session');
     }
 
-    const data = await response.json();
+    const data = await adminCheckResponse.json();
     const isAdmin = data.isAdmin;
-    
 
     // If trying to access admin routes
     if (request.nextUrl.pathname.startsWith("/admin")) {
@@ -81,7 +80,6 @@ export async function middleware(request: NextRequest) {
     // If trying to access dashboard routes
     if (request.nextUrl.pathname.startsWith("/dashboard")) {
       if (isAdmin) {
-
         return NextResponse.redirect(new URL("/admin", request.url));
       }
     }

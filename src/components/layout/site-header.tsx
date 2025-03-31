@@ -20,6 +20,7 @@ function useThemeLogo() {
   useEffect(() => {
     if (mounted) {
       setImageSrc(resolvedTheme === "dark" ? "/images/darkLogo.png" : "/images/logo.png")
+      setError(false)
     }
   }, [mounted, resolvedTheme])
 
@@ -32,7 +33,7 @@ function useThemeLogo() {
       mounted,
       attemptedPath: imageSrc
     })
-    setError(true);
+    setError(true)
   }
    
   return {
@@ -41,10 +42,18 @@ function useThemeLogo() {
     imageSrc,
     handleError
   }
-};
+}
 
 function Logo() {
-  const { error, imageSrc, handleError } = useThemeLogo()
+  const { error, imageSrc, handleError, mounted } = useThemeLogo()
+
+  if (!mounted) {
+    return (
+      <div className="w-[110px] h-[110px] flex items-center justify-center bg-primary/10 rounded-lg">
+        <span className="text-primary font-bold text-xl">M&M</span>
+      </div>
+    )
+  }
 
   if (error) {
     return (
@@ -52,7 +61,7 @@ function Logo() {
         <span className="text-primary font-bold text-xl">M&M</span>
       </div>
     )
-  };
+  }
 
   return (
     <Image
@@ -64,6 +73,7 @@ function Logo() {
       onError={handleError}
       quality={100}
       unoptimized
+      className="object-contain"
     />
   )
 }
