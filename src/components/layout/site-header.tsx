@@ -7,7 +7,7 @@ import { MainNav } from "@/components/layout/main-nav"
 import { useEffect, useState } from "react"
 import { ThemeToggle } from "./theme-toggle"
 
-function Logo() {
+function useThemeLogo() {
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [error, setError] = useState(false)
@@ -22,6 +22,17 @@ function Logo() {
     console.log('Attempted to load:', resolvedTheme === "dark" ? "/darkLogo.png" : "/logo.png")
     setError(true)
   }
+
+  return {
+    mounted,
+    error,
+    resolvedTheme,
+    handleError
+  }
+}
+
+function Logo() {
+  const { mounted, error, resolvedTheme, handleError } = useThemeLogo()
 
   if (error) {
     return (
