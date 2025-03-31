@@ -34,7 +34,7 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
   // Add security headers
-  response.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
   response.headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
   response.headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
 
