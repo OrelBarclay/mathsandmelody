@@ -11,6 +11,11 @@ export async function middleware(request: NextRequest) {
     "/booking/success",
     "/images",
     "/api/auth",
+    "/services",
+    "/portfolio",
+    "/contact",
+    "/about",
+    "/blog",
   ];
 
   // Check if the current path is a public route
@@ -58,19 +63,12 @@ export async function middleware(request: NextRequest) {
     const data = await response.json();
     const user = data.users[0];
     
-    // Check for admin role in customAttributes
-    let isAdmin = false;
-    try {
-      const customAttributes = JSON.parse(user?.customAttributes || '{}');
-      isAdmin = customAttributes.role === "admin";
-    } catch (e) {
-      console.error("Error parsing customAttributes:", e);
-    }
-    
+    // Check for admin role in customClaims
+    const isAdmin = user?.customClaims?.role === "admin";
 
     // If trying to access admin routes
     if (request.nextUrl.pathname.startsWith("/admin")) {
-      console.log("Redirecting to admin dashboard", isAdmin);
+      console.log("Checking admin access:", isAdmin);
       if (!isAdmin) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
@@ -79,10 +77,10 @@ export async function middleware(request: NextRequest) {
     // If trying to access dashboard routes
     if (request.nextUrl.pathname.startsWith("/dashboard")) {
       if (isAdmin) {
-        console.log("Redirecting to admin dashboard");
+        console.log("Admin user, redirecting to admin dashboard");
         return NextResponse.redirect(new URL("/admin", request.url));
       }
-      console.log("Redirecting to user dashboard");
+      console.log("Regular user, allowing access to dashboard");
     }
 
     return NextResponse.next();
@@ -100,8 +98,7 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - images (public images)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|images).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
   ],
 };
