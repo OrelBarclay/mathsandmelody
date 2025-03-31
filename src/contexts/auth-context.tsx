@@ -15,6 +15,7 @@ import {
   deleteUser,
   EmailAuthProvider,
   reauthenticateWithCredential,
+  AuthError,
 } from "firebase/auth"
 import { auth, googleProvider, githubProvider } from "@/lib/firebase"
 
@@ -169,41 +170,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     if (!auth) throw new Error("Firebase Auth is not initialized")
-    const result = await signInWithPopup(auth, googleProvider)
-    await checkUserRole(result.user)
-    
-    // Create session cookie
-    const idToken = await result.user.getIdToken()
-    const response = await fetch("/api/auth/session", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ idToken }),
-    })
+    try {
+      const result = await signInWithPopup(auth, googleProvider)
+      await checkUserRole(result.user)
+      
+      // Create session cookie
+      const idToken = await result.user.getIdToken()
+      const response = await fetch("/api/auth/session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ idToken }),
+      })
 
-    if (!response.ok) {
-      throw new Error("Failed to create session")
+      if (!response.ok) {
+        throw new Error("Failed to create session")
+      }
+    } catch (error) {
+      if ((error as AuthError).code === 'auth/popup-closed-by-user') {
+        throw new Error("Sign in was cancelled. Please try again.")
+      }
+      throw error
     }
   }
 
   const signInWithGithub = async () => {
     if (!auth) throw new Error("Firebase Auth is not initialized")
-    const result = await signInWithPopup(auth, githubProvider)
-    await checkUserRole(result.user)
-    
-    // Create session cookie
-    const idToken = await result.user.getIdToken()
-    const response = await fetch("/api/auth/session", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ idToken }),
-    })
+    try {
+      const result = await signInWithPopup(auth, githubProvider)
+      await checkUserRole(result.user)
+      
+      // Create session cookie
+      const idToken = await result.user.getIdToken()
+      const response = await fetch("/api/auth/session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ idToken }),
+      })
 
-    if (!response.ok) {
-      throw new Error("Failed to create session")
+      if (!response.ok) {
+        throw new Error("Failed to create session")
+      }
+    } catch (error) {
+      if ((error as AuthError).code === 'auth/popup-closed-by-user') {
+        throw new Error("Sign in was cancelled. Please try again.")
+      }
+      throw error
     }
   }
 
