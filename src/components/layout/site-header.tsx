@@ -11,28 +11,40 @@ function useThemeLogo() {
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [error, setError] = useState(false)
+  const [imageSrc, setImageSrc] = useState("/images/logo.png")
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
+  useEffect(() => {
+    if (mounted) {
+      setImageSrc(resolvedTheme === "dark" ? "/images/darkLogo.png" : "/images/logo.png")
+    }
+  }, [mounted, resolvedTheme])
+
   const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    console.error('Image failed to load:', e)
-    console.log('Current theme:', resolvedTheme)
-    console.log('Attempted to load:', resolvedTheme === "dark" ? "/darkLogo.png" : "/logo.png")
+    const img = e.target as HTMLImageElement
+    console.error('Image failed to load:', {
+      src: img.src,
+      currentSrc: img.currentSrc,
+      theme: resolvedTheme,
+      mounted,
+      attemptedPath: imageSrc
+    })
     setError(true)
   }
 
   return {
     mounted,
     error,
-    resolvedTheme,
+    imageSrc,
     handleError
   }
 }
 
 function Logo() {
-  const { mounted, error, resolvedTheme, handleError } = useThemeLogo()
+  const { error, imageSrc, handleError } = useThemeLogo()
 
   if (error) {
     return (
@@ -42,29 +54,16 @@ function Logo() {
     )
   }
 
-  // During SSR, always use light theme logo
-  if (!mounted) {
-    return (
-      <Image
-        src="/logo.png"
-        alt="Math and Melody Logo"
-        width={110}
-        height={110}
-        priority
-        onError={handleError}
-      />
-    )
-  }
-
-  // After hydration, use theme-based logo
   return (
     <Image
-      src={resolvedTheme === "dark" ? "/darkLogo.png" : "/logo.png"}
+      src={imageSrc}
       alt="Math and Melody Logo"
       width={110}
       height={110}
       priority
       onError={handleError}
+      quality={100}
+      unoptimized
     />
   )
 }
