@@ -44,17 +44,23 @@ export function BookingForm() {
       // Create booking
       const booking = await bookingService.createBooking({
         userId: user.uid,
+        serviceId: formData.serviceType,
         serviceType: formData.serviceType,
-        date: new Date(formData.date),
+        date: new Date(formData.date).toISOString(),
+        time: new Date(formData.date).toLocaleTimeString(),
         duration: parseInt(formData.duration),
         status: "pending",
         price: formData.serviceType === "math" ? 50 : formData.serviceType === "music" ? 60 : 40,
         notes: formData.notes,
       })
 
+      if (!booking) {
+        throw new Error("Failed to create booking")
+      }
+
       // Create Stripe checkout session
       await StripeService.createCheckoutSession({
-        bookingId: booking.id!,
+        bookingId: booking.id,
         amount: booking.price,
       })
     } catch (err) {

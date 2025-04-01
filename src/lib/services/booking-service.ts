@@ -1,11 +1,14 @@
-interface Booking {
+export interface Booking {
   id: string
   userId: string
   serviceId: string
+  serviceType: string
   date: string
   time: string
-  status: 'pending' | 'confirmed' | 'cancelled'
+  duration: number
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
   price: number
+  notes?: string
   createdAt: string
   updatedAt: string
 }
@@ -21,6 +24,20 @@ export class BookingService {
       return data.bookings
     } catch (error) {
       console.error('Error fetching bookings:', error)
+      return []
+    }
+  }
+
+  async getBookingsByUserId(userId: string): Promise<Booking[]> {
+    try {
+      const response = await fetch(`/api/admin/bookings?userId=${userId}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch user bookings')
+      }
+      const data = await response.json()
+      return data.bookings
+    } catch (error) {
+      console.error('Error fetching user bookings:', error)
       return []
     }
   }

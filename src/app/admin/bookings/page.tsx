@@ -48,7 +48,7 @@ export default function BookingsPage() {
 
   const handleStatusChange = async (bookingId: string, newStatus: Booking["status"]) => {
     try {
-      await bookingService.updateBookingStatus(bookingId, newStatus)
+      await bookingService.updateBooking(bookingId, { status: newStatus })
       await loadBookings()
     } catch (error) {
       console.error("Error updating booking status:", error)
@@ -131,7 +131,7 @@ export default function BookingsPage() {
                   <TableCell>
                     {format(new Date(booking.date), "MMM d, yyyy h:mm a")}
                   </TableCell>
-                  <TableCell>{booking.duration} min</TableCell>
+                  <TableCell>{booking.duration ? `${booking.duration} min` : 'N/A'}</TableCell>
                   <TableCell>${booking.price}</TableCell>
                   <TableCell>
                     <Select
