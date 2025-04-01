@@ -17,11 +17,11 @@ import { useState } from "react"
 
 export function MainNav() {
   const pathname = usePathname()
-  const { user, logout } = useAuth()
+  const { user, signOut } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const handleSignOut = async () => {
-    await logout()
+    await signOut()
   }
 
   const navLinks = [

@@ -67,7 +67,7 @@ export async function middleware(request: NextRequest) {
     // If trying to access admin routes
     if (request.nextUrl.pathname.startsWith("/admin")) {
       if (!isAdmin) {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
+        return NextResponse.redirect(new URL("/", request.url));
       }
     }
 

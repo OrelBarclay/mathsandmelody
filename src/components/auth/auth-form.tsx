@@ -4,17 +4,32 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/contexts/auth-context"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Github } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 interface AuthFormProps {
   mode: "signin" | "signup"
 }
 
 export function AuthForm({ mode }: AuthFormProps) {
-  const { signIn, signUp, signInWithGoogle, signInWithGithub } = useAuth()
+  const { signIn, signUp, signInWithGoogle, signInWithGithub, isAuthenticated, error: authError } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/dashboard")
+    }
+  }, [isAuthenticated, router])
+
+  useEffect(() => {
+    if (authError) {
+      setError(authError)
+      setLoading(false)
+    }
+  }, [authError])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -39,17 +54,21 @@ export function AuthForm({ mode }: AuthFormProps) {
   }
 
   const handleSocialLogin = async (provider: "google" | "github") => {
-    setLoading(true)
-    setError(null)
-
     try {
+      setLoading(true)
+      setError(null)
       if (provider === "google") {
         await signInWithGoogle()
       } else {
         await signInWithGithub()
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      if (err instanceof Error && err.message.includes('auth/popup-closed-by-user')) {
+        // User closed the popup, don't show error
+        console.log('Sign-in cancelled by user')
+      } else {
+        setError(err instanceof Error ? err.message : "An error occurred")
+      }
     } finally {
       setLoading(false)
     }
@@ -66,6 +85,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             type="email"
             placeholder="Enter your email"
             required
+            disabled={loading}
           />
         </div>
 
@@ -77,6 +97,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             type="password"
             placeholder="Enter your password"
             required
+            disabled={loading}
           />
         </div>
 
