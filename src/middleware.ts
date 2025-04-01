@@ -16,7 +16,6 @@ export async function middleware(request: NextRequest) {
     "/contact",
     "/about",
     "/blog",
-    "/__/auth", // Firebase Auth routes
   ];
 
   // Check if the current path is a public route
@@ -32,11 +31,6 @@ export async function middleware(request: NextRequest) {
 
   // Create response
   const response = NextResponse.next();
-
-  // Add security headers
-  response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
-  response.headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
-  response.headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
 
   // Allow access to public routes without authentication
   if (isPublicRoute) {
@@ -99,7 +93,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - __/auth (Firebase Auth routes)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|__/auth).*)",
   ],
 };
