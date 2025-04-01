@@ -27,13 +27,18 @@ const nextConfig: NextConfig = {
         source: '/:path*',
         headers: [
           {
-            key: 'Cross-Origin-Embedder-Policy',
-            value: 'credentialless',
-          },
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'same-site',
+          }
+        ],
+      },
+      {
+        source: '/_next/:path*',
+        headers: [
           {
             key: 'Cross-Origin-Resource-Policy',
             value: 'cross-origin',
-          },
+          }
         ],
       },
       {
@@ -46,23 +51,15 @@ const nextConfig: NextConfig = {
           {
             key: 'Cross-Origin-Resource-Policy',
             value: 'cross-origin',
-          },
-          {
-            key: 'Cross-Origin-Embedder-Policy',
-            value: 'credentialless',
           }
         ],
       },
       {
-        source: '/iframe/:path*',
+        source: '/api/:path*',
         headers: [
           {
             key: 'Cross-Origin-Resource-Policy',
-            value: 'cross-origin',
-          },
-          {
-            key: 'Cross-Origin-Embedder-Policy',
-            value: 'credentialless',
+            value: 'same-origin',
           }
         ],
       }
