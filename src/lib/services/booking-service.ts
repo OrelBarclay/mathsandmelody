@@ -1,73 +1,96 @@
-import { db } from "@/lib/firebase"
-import { collection, addDoc, getDocs, query, where, Timestamp, updateDoc, deleteDoc, doc } from "firebase/firestore"
-
-export interface Booking {
-  id?: string
+interface Booking {
+  id: string
   userId: string
-  serviceType: "math" | "music" | "sports"
-  date: Date
-  duration: number // in minutes
-  status: "pending" | "confirmed" | "cancelled" | "completed"
+  serviceId: string
+  date: string
+  time: string
+  status: 'pending' | 'confirmed' | 'cancelled'
   price: number
-  notes?: string
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
 }
 
 export class BookingService {
-  private getCollection() {
-    if (!db) throw new Error("Firestore is not initialized")
-    return collection(db, "bookings")
-  }
-
-  async createBooking(booking: Omit<Booking, "id" | "createdAt" | "updatedAt">): Promise<Booking> {
-    const docRef = await addDoc(this.getCollection(), {
-      ...booking,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-    })
-
-    return {
-      id: docRef.id,
-      ...booking,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+  async getAllBookings(): Promise<Booking[]> {
+    try {
+      const response = await fetch('/api/admin/bookings')
+      if (!response.ok) {
+        throw new Error('Failed to fetch bookings')
+      }
+      const data = await response.json()
+      return data.bookings
+    } catch (error) {
+      console.error('Error fetching bookings:', error)
+      return []
     }
   }
 
-  async getBookingsByUserId(userId: string): Promise<Booking[]> {
-    const q = query(this.getCollection(), where("userId", "==", userId))
-    const querySnapshot = await getDocs(q)
-    return querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      date: doc.data().date.toDate(),
-      createdAt: doc.data().createdAt.toDate(),
-      updatedAt: doc.data().updatedAt.toDate(),
-    })) as Booking[]
+  async getBooking(id: string): Promise<Booking | null> {
+    try {
+      const response = await fetch(`/api/admin/bookings/${id}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch booking')
+      }
+      const data = await response.json()
+      return data.booking
+    } catch (error) {
+      console.error('Error fetching booking:', error)
+      return null
+    }
   }
 
-  async getAllBookings(): Promise<Booking[]> {
-    const querySnapshot = await getDocs(this.getCollection())
-    return querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      date: doc.data().date.toDate(),
-      createdAt: doc.data().createdAt.toDate(),
-      updatedAt: doc.data().updatedAt.toDate(),
-    })) as Booking[]
+  async createBooking(booking: Omit<Booking, 'id' | 'createdAt' | 'updatedAt'>): Promise<Booking | null> {
+    try {
+      const response = await fetch('/api/admin/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(booking),
+      })
+      if (!response.ok) {
+        throw new Error('Failed to create booking')
+      }
+      const data = await response.json()
+      return data.booking
+    } catch (error) {
+      console.error('Error creating booking:', error)
+      return null
+    }
   }
 
-  async updateBookingStatus(bookingId: string, status: Booking["status"]): Promise<void> {
-    const docRef = doc(this.getCollection(), bookingId)
-    await updateDoc(docRef, {
-      status,
-      updatedAt: Timestamp.now(),
-    })
+  async updateBooking(id: string, booking: Partial<Booking>): Promise<Booking | null> {
+    try {
+      const response = await fetch(`/api/admin/bookings/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(booking),
+      })
+      if (!response.ok) {
+        throw new Error('Failed to update booking')
+      }
+      const data = await response.json()
+      return data.booking
+    } catch (error) {
+      console.error('Error updating booking:', error)
+      return null
+    }
   }
 
-  async deleteBooking(bookingId: string): Promise<void> {
-    const docRef = doc(this.getCollection(), bookingId)
-    await deleteDoc(docRef)
+  async deleteBooking(id: string): Promise<boolean> {
+    try {
+      const response = await fetch(`/api/admin/bookings/${id}`, {
+        method: 'DELETE',
+      })
+      if (!response.ok) {
+        throw new Error('Failed to delete booking')
+      }
+      return true
+    } catch (error) {
+      console.error('Error deleting booking:', error)
+      return false
+    }
   }
 } 
