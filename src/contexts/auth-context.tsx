@@ -5,243 +5,229 @@ import {
   User,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signOut,
+  signOut as firebaseSignOut,
   onAuthStateChanged,
-  signInWithPopup,
-  updateProfile as firebaseUpdateProfile,
-  sendPasswordResetEmail,
-  updateEmail,
-  updatePassword,
-  deleteUser,
-  EmailAuthProvider,
-  reauthenticateWithCredential,
-  AuthError,
+  getRedirectResult,
+  signInWithRedirect,
+  setPersistence,
+  browserLocalPersistence
 } from "firebase/auth"
-import { auth, googleProvider, githubProvider } from "@/lib/firebase"
+import { auth, googleProvider, githubProvider, db } from "@/lib/firebase"
+import { getDoc, doc } from "firebase/firestore"
 
 type UserRole = "student" | "admin" | "tutor"
 
 interface AuthContextType {
   user: User | null
   loading: boolean
+  error: string | null
+  isAuthenticated: boolean
   userRole: UserRole | null
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<void>
-  logout: () => Promise<void>
-  resetPassword: (email: string) => Promise<void>
-  updateProfile: (data: { displayName?: string; photoURL?: string }) => Promise<void>
-  updateUserEmail: (newEmail: string) => Promise<void>
-  updateUserPassword: (newPassword: string) => Promise<void>
-  deleteUserAccount: (currentPassword: string) => Promise<void>
+  signOut: () => Promise<void>
   signInWithGoogle: () => Promise<void>
   signInWithGithub: () => Promise<void>
-  isAuthenticated: boolean
   isAdmin: boolean
   isTutor: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+const createSessionCookie = async (user: User) => {
+  const idToken = await user.getIdToken()
+  const response = await fetch("/api/auth/session", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ idToken }),
+  })
+
+  if (!response.ok) {
+    throw new Error("Failed to create session")
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userRole, setUserRole] = useState<UserRole | null>(null)
 
-  const isAuthenticated = !!user
-  const isAdmin = userRole === "admin"
-  const isTutor = userRole === "tutor"
-
-  const checkUserRole = async (user: User) => {
-    try {
-      const idTokenResult = await user.getIdTokenResult()
-      const role = idTokenResult.claims.role as UserRole
-      setUserRole(role || "student")
-    } catch (error) {
-      console.error("Error checking user role:", error)
-      setUserRole("student")
-    }
-  }
-
   useEffect(() => {
-    if (!auth) {
-      setLoading(false)
-      return
+    const initializeAuth = async () => {
+      try {
+        // Set persistence to LOCAL
+        await setPersistence(auth, browserLocalPersistence)
+      } catch (err) {
+        console.error("Error setting persistence:", err)
+      }
     }
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user)
-      if (user) {
-        console.log("user", user)
-        await checkUserRole(user)
-      } else {
-        setUserRole(null)
+    initializeAuth()
+
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      console.log("Auth state changed - Current user:", currentUser?.email ?? "No user")
+      console.log("Current auth instance:", auth.currentUser?.email)
+      
+      try {
+        if (currentUser) {
+          setUser(currentUser)
+          setIsAuthenticated(true)
+
+          // Create session cookie if needed
+          if (!document.cookie.includes('session=')) {
+            try {
+              await createSessionCookie(currentUser)
+            } catch (cookieErr) {
+              console.error("Error creating session cookie:", cookieErr)
+            }
+          }
+
+          // Get user role
+          try {
+            const userDocRef = doc(db, "users", currentUser.uid)
+            const userDoc = await getDoc(userDocRef)
+            if (userDoc.exists()) {
+              setUserRole(userDoc.data().role as UserRole)
+            } else {
+              setUserRole("student")
+            }
+          } catch (roleErr) {
+            console.error("Error getting user role:", roleErr)
+            setUserRole("student")
+          }
+        } else {
+          setUser(null)
+          setIsAuthenticated(false)
+          setUserRole(null)
+        }
+      } catch (err) {
+        console.error("Error in auth state change:", err)
+        setError("Failed to update authentication state")
       }
-      setLoading(false)
     })
+
+    // Check for redirect result
+    const checkRedirect = async () => {
+      try {
+        const result = await getRedirectResult(auth)
+        if (result?.user) {
+          console.log("Redirect result received:", result.user.email)
+          // Force refresh the token
+          await result.user.getIdToken(true)
+        }
+      } catch (err) {
+        console.error("Error handling redirect:", err)
+        setError("Failed to complete sign in")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkRedirect()
 
     return () => unsubscribe()
   }, [])
 
-  const signIn = async (email: string, password: string) => {
-    if (!auth) throw new Error("Firebase Auth is not initialized")
-    const result = await signInWithEmailAndPassword(auth, email, password)
-    await checkUserRole(result.user)
-    
-    // Create session cookie
-    const idToken = await result.user.getIdToken()
-    const response = await fetch("/api/auth/session", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ idToken }),
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to create session")
-    }
-  }
-
-  const signUp = async (email: string, password: string) => {
-    if (!auth) throw new Error("Firebase Auth is not initialized")
-    const result = await createUserWithEmailAndPassword(auth, email, password)
-    await checkUserRole(result.user)
-    
-    // Create session cookie
-    const idToken = await result.user.getIdToken()
-    const response = await fetch("/api/auth/session", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ idToken }),
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to create session")
-    }
-  }
-
-  const logout = async () => {
-    if (!auth) throw new Error("Firebase Auth is not initialized")
-    await signOut(auth)
-    
-    // Clear session cookie
-    await fetch("/api/auth/session", {
-      method: "DELETE",
-    })
-  }
-
-  const resetPassword = async (email: string) => {
-    if (!auth) throw new Error("Firebase Auth is not initialized")
-    await sendPasswordResetEmail(auth, email)
-  }
-
-  const updateProfile = async (data: { displayName?: string; photoURL?: string }) => {
-    if (!auth) throw new Error("Firebase Auth is not initialized")
-    if (!auth.currentUser) throw new Error("No user logged in")
-    await firebaseUpdateProfile(auth.currentUser, data)
-  }
-
-  const updateUserEmail = async (newEmail: string) => {
-    if (!auth) throw new Error("Firebase Auth is not initialized")
-    if (!auth.currentUser) throw new Error("No user logged in")
-    await updateEmail(auth.currentUser, newEmail)
-  }
-
-  const updateUserPassword = async (newPassword: string) => {
-    if (!auth) throw new Error("Firebase Auth is not initialized")
-    if (!auth.currentUser) throw new Error("No user logged in")
-    await updatePassword(auth.currentUser, newPassword)
-  }
-
-  const deleteUserAccount = async (currentPassword: string) => {
-    if (!auth) throw new Error("Firebase Auth is not initialized")
-    if (!auth.currentUser) throw new Error("No user logged in")
-
-    // Reauthenticate user before deletion
-    const credential = EmailAuthProvider.credential(
-      auth.currentUser.email!,
-      currentPassword
-    )
-    await reauthenticateWithCredential(auth.currentUser, credential)
-    await deleteUser(auth.currentUser)
-  }
-
   const signInWithGoogle = async () => {
-    if (!auth) throw new Error("Firebase Auth is not initialized")
     try {
-      const result = await signInWithPopup(auth, googleProvider)
-      await checkUserRole(result.user)
-      
-      // Create session cookie
-      const idToken = await result.user.getIdToken()
-      const response = await fetch("/api/auth/session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ idToken }),
+      setError(null)
+      setLoading(true)
+      // Force token refresh before redirect
+      if (auth.currentUser) {
+        await auth.currentUser.getIdToken(true)
+      }
+      // Configure Google provider
+      googleProvider.setCustomParameters({
+        prompt: 'select_account'
       })
-
-      if (!response.ok) {
-        throw new Error("Failed to create session")
-      }
-    } catch (error) {
-      if ((error as AuthError).code === 'auth/popup-closed-by-user') {
-        throw new Error("Sign in was cancelled. Please try again.")
-      }
-      throw error
+      await signInWithRedirect(auth, googleProvider)
+    } catch (err) {
+      console.error("Google sign in error:", err)
+      setError("Failed to sign in with Google")
+      setLoading(false)
+      throw err
     }
   }
 
   const signInWithGithub = async () => {
-    if (!auth) throw new Error("Firebase Auth is not initialized")
     try {
-      const result = await signInWithPopup(auth, githubProvider)
-      await checkUserRole(result.user)
-      
-      // Create session cookie
-      const idToken = await result.user.getIdToken()
-      const response = await fetch("/api/auth/session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ idToken }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to create session")
+      setError(null)
+      setLoading(true)
+      // Force token refresh before redirect
+      if (auth.currentUser) {
+        await auth.currentUser.getIdToken(true)
       }
-    } catch (error) {
-      if ((error as AuthError).code === 'auth/popup-closed-by-user') {
-        throw new Error("Sign in was cancelled. Please try again.")
-      }
-      throw error
+      await signInWithRedirect(auth, githubProvider)
+    } catch (err) {
+      console.error("GitHub sign in error:", err)
+      setError("Failed to sign in with GitHub")
+      setLoading(false)
+      throw err
     }
   }
 
-  const value = {
-    user,
-    loading,
-    userRole,
-    signIn,
-    signUp,
-    logout,
-    resetPassword,
-    updateProfile,
-    updateUserEmail,
-    updateUserPassword,
-    deleteUserAccount,
-    signInWithGoogle,
-    signInWithGithub,
-    isAuthenticated,
-    isAdmin,
-    isTutor,
+  const signIn = async (email: string, password: string) => {
+    try {
+      setError(null)
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      await createSessionCookie(userCredential.user)
+    } catch (err) {
+      console.error("Sign in error:", err)
+      setError("Failed to sign in")
+      throw err
+    }
   }
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  const signUp = async (email: string, password: string) => {
+    try {
+      setError(null)
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+      await createSessionCookie(userCredential.user)
+    } catch (err) {
+      console.error("Sign up error:", err)
+      setError("Failed to sign up")
+      throw err
+    }
+  }
+
+  const signOut = async () => {
+    try {
+      setError(null)
+      await firebaseSignOut(auth)
+    } catch (err) {
+      console.error("Sign out error:", err)
+      setError("Failed to sign out")
+      throw err
+    }
+  }
+
+  const isAdmin = userRole === "admin"
+  const isTutor = userRole === "tutor"
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        error,
+        isAuthenticated,
+        userRole,
+        signIn,
+        signUp,
+        signOut,
+        signInWithGoogle,
+        signInWithGithub,
+        isAdmin,
+        isTutor,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export function useAuth() {
