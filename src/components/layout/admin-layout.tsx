@@ -82,7 +82,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <Button
             variant="ghost"
             className="w-full justify-start"
-            onClick={() => router.push("/profile")}
+            onClick={() => router.push("/admin/profile")}
           >
             <User className="mr-2 h-4 w-4" />
             Profile
