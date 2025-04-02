@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation"
 import { Calendar, Clock, User, BookOpen } from "lucide-react"
 import { MainLayout } from "@/components/layout/main-layout"
 import Image from "next/image"
+import { format } from "date-fns"
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -35,9 +36,39 @@ export default function DashboardPage() {
     )
   }
 
-  const upcomingBookings = bookings.filter(booking => 
-    booking.status === "confirmed" && new Date(booking.date) > new Date()
-  )
+  const upcomingBookings = bookings.filter(booking => {
+    const bookingDate = booking.date;
+    let date: Date;
+    
+    if (typeof bookingDate === 'object' && '_seconds' in bookingDate) {
+      // Handle Firestore Timestamp
+      date = new Date(bookingDate._seconds * 1000);
+    } else if (typeof bookingDate === 'string') {
+      // Handle ISO string
+      date = new Date(bookingDate);
+    } else {
+      return false;
+    }
+    
+    return booking.status === "confirmed" && date > new Date();
+  })
+
+  const pastBookings = bookings.filter(booking => {
+    const bookingDate = booking.date;
+    let date: Date;
+    
+    if (typeof bookingDate === 'object' && '_seconds' in bookingDate) {
+      // Handle Firestore Timestamp
+      date = new Date(bookingDate._seconds * 1000);
+    } else if (typeof bookingDate === 'string') {
+      // Handle ISO string
+      date = new Date(bookingDate);
+    } else {
+      return false;
+    }
+    
+    return date < new Date();
+  })
 
   return (
     <MainLayout>
@@ -128,8 +159,22 @@ export default function DashboardPage() {
                       <div>
                         <p className="font-medium">{booking.serviceType}</p>
                         <p className="text-sm text-muted-foreground">
-                          {new Date(booking.date).toLocaleDateString()} at{" "}
-                          {new Date(booking.date).toLocaleTimeString()}
+                          {(() => {
+                            const bookingDate = booking.date;
+                            let date: Date;
+                            
+                            if (typeof bookingDate === 'object' && '_seconds' in bookingDate) {
+                              // Handle Firestore Timestamp
+                              date = new Date(bookingDate._seconds * 1000);
+                            } else if (typeof bookingDate === 'string') {
+                              // Handle ISO string
+                              date = new Date(bookingDate);
+                            } else {
+                              return 'Invalid Date';
+                            }
+                            
+                            return format(date, "MMM d, yyyy h:mm a");
+                          })()}
                         </p>
                       </div>
                       <Button 
@@ -156,7 +201,22 @@ export default function DashboardPage() {
                     <div>
                       <p className="font-medium">{booking.serviceType}</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(booking.date).toLocaleDateString()}
+                        {(() => {
+                          const bookingDate = booking.date;
+                          let date: Date;
+                          
+                          if (typeof bookingDate === 'object' && '_seconds' in bookingDate) {
+                            // Handle Firestore Timestamp
+                            date = new Date(bookingDate._seconds * 1000);
+                          } else if (typeof bookingDate === 'string') {
+                            // Handle ISO string
+                            date = new Date(bookingDate);
+                          } else {
+                            return 'Invalid Date';
+                          }
+                          
+                          return format(date, "MMM d, yyyy h:mm a");
+                        })()}
                       </p>
                     </div>
                     <span className={`px-2 py-1 rounded-full text-xs ${
