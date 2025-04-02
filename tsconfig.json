@@ -14,9 +14,10 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "isolatedModules": true, // Changed this line
+    "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "types": ["node", "react", "react-dom"],
     "plugins": [
       {
         "name": "next"
