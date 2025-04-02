@@ -59,9 +59,22 @@ export default function AnalyticsPage() {
       const days = eachDayOfInterval({ start: startDate, end: endDate })
       const dailyBookings = days.map((day) => {
         const dayStart = startOfDay(day)
-        const dayBookings = bookings.filter(
-          (b) => startOfDay(new Date(b.date)).getTime() === dayStart.getTime()
-        )
+        const dayBookings = bookings.filter((b) => {
+          const bookingDate = b.date;
+          let date: Date;
+          
+          if (typeof bookingDate === 'object' && '_seconds' in bookingDate) {
+            // Handle Firestore Timestamp
+            date = new Date(bookingDate._seconds * 1000);
+          } else if (typeof bookingDate === 'string') {
+            // Handle ISO string
+            date = new Date(bookingDate);
+          } else {
+            return false;
+          }
+          
+          return startOfDay(date).getTime() === dayStart.getTime();
+        })
         return {
           date: format(day, "MMM d"),
           count: dayBookings.length,
