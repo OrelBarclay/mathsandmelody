@@ -15,6 +15,7 @@ export async function POST(request: Request) {
     // Verify the ID token and get the user
     const decodedToken = await auth.verifyIdToken(idToken);
     const isAdmin = decodedToken.role === "admin";
+    console.log("decodedToken", decodedToken);
 
     return NextResponse.json({ 
       isAdmin,

@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { Toaster } from "@/components/ui/toaster"
+import { RoleBasedRedirect } from "@/components/auth/role-based-redirect";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -54,6 +55,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
+            <RoleBasedRedirect />
             {children}
           </AuthProvider>
         </ThemeProvider>

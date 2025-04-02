@@ -17,11 +17,26 @@ export async function POST(request: Request) {
     console.log("User claims:", user.customClaims);
     console.log("User:", user);
 
+    // Also check the session cookie if available
+    const session = request.headers.get("cookie")?.split("session=")[1]?.split(";")[0];
+    let sessionClaims = null;
+    if (session) {
+      try {
+        const decodedToken = await auth.verifySessionCookie(session);
+        sessionClaims = decodedToken;
+        console.log("Session claims:", sessionClaims);
+      } catch (error) {
+        console.error("Error verifying session:", error);
+      }
+    }
+
     return NextResponse.json({ 
       claims: user.customClaims,
+      sessionClaims,
       uid: user.uid,
       email: user.email,
-      displayName: user.displayName
+      displayName: user.displayName,
+      isAdmin: user.customClaims?.role === "admin"
     });
   } catch (error) {
     console.error("Error checking claims:", error);

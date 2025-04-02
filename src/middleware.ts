@@ -2,64 +2,42 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  // List of public routes that don't require authentication
-  const publicRoutes = [
-    "/",
-    "/auth/signin",
-    "/auth/signup",
-    "/booking",
-    "/booking/success",
-    "/images",
-    "/api/auth",
-    "/services",
-    "/portfolio",
-    "/contact",
-    "/about",
-    "/blog",
-  ];
+  const session = request.cookies.get("session")?.value;
 
-  // Check if the current path is a public route
-  const isPublicRoute = publicRoutes.some((route) => {
-    if (route.startsWith("/api/")) {
-      return request.nextUrl.pathname.startsWith(route);
+  // Handle API routes that require authentication
+  if (request.nextUrl.pathname.startsWith("/api/")) {
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    return route === "/"
-      ? request.nextUrl.pathname === "/"
-      : request.nextUrl.pathname.startsWith(route);
-  });
 
-  // Allow access to public routes without authentication
-  if (isPublicRoute) {
+    // For API routes, let the API handlers verify the session
     return NextResponse.next();
   }
 
-  // Check for session cookie
-  const session = request.cookies.get("session");
+  // Handle page routes
   if (!session) {
-    return NextResponse.redirect(new URL("/auth/signin", request.url));
-  }
-
-  // For admin routes, let the API handle the admin check
-  if (request.nextUrl.pathname.startsWith("/admin")) {
-    // We'll let the page handle the admin check
+    // Redirect to signin for protected routes
+    if (
+      request.nextUrl.pathname.startsWith("/dashboard") ||
+      request.nextUrl.pathname.startsWith("/admin") ||
+      request.nextUrl.pathname.startsWith("/tutor")
+    ) {
+      const signInUrl = new URL("/auth/signin", request.url);
+      signInUrl.searchParams.set("from", request.nextUrl.pathname);
+      return NextResponse.redirect(signInUrl);
+    }
     return NextResponse.next();
   }
 
-  // For all other authenticated routes (like dashboard)
+  // For protected routes, let the page components handle role-based access
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - __/auth (Firebase Auth routes)
-     * - public files (images, etc)
-     */
-    "/((?!api|_next/static|_next/image|favicon.ico|__/auth|.*\\..*|assets).*)",
+    "/dashboard/:path*",
+    "/admin/:path*",
+    "/tutor/:path*",
+    "/api/:path*",
   ],
 };

@@ -19,7 +19,7 @@ export async function GET() {
 
     // Get all users
     const listUsersResult = await auth.listUsers();
-    console.log("List users result:", listUsersResult);
+   
     const users = listUsersResult.users.map((user) => ({
       uid: user.uid,
       email: user.email,

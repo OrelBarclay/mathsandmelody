@@ -5,6 +5,7 @@ import { AdminLayout } from "@/components/layout/admin-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
 import {
   Users,
   Calendar,
@@ -29,6 +30,7 @@ interface DashboardStats {
 
 export function AdminDashboard() {
   const router = useRouter()
+  const { isAdmin } = useAuth()
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     totalBookings: 0,
@@ -38,16 +40,34 @@ export function AdminDashboard() {
     bookingsChange: 0,
   })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    console.log("AdminDashboard - Current state:", {
+      isAdmin,
+      loading,
+      hasError: !!error
+    });
+
+    if (!isAdmin) {
+      console.log("AdminDashboard - Not admin, redirecting to dashboard");
+      router.replace('/dashboard')
+      return
+    }
     loadDashboardData()
-  }, [])
+  }, [isAdmin, router])
 
   const loadDashboardData = async () => {
     try {
+      console.log("AdminDashboard - Loading dashboard data");
       const [bookings, usersResponse] = await Promise.all([
         bookingService.getAllBookings(),
-        fetch("/api/admin/users").then(res => res.json()),
+        fetch("/api/admin/users").then(res => {
+          if (!res.ok) {
+            throw new Error("Failed to fetch users");
+          }
+          return res.json();
+        }),
       ])
 
       const totalRevenue = bookings.reduce((sum, booking) => sum + booking.price, 0)
@@ -58,12 +78,12 @@ export function AdminDashboard() {
         totalBookings: bookings.length,
         totalRevenue,
         pendingBookings,
-        revenueChange: 12.5, // This would come from comparing with previous period
-        bookingsChange: 8.2, // This would come from comparing with previous period
+        revenueChange: 12.5,
+        bookingsChange: 8.2,
       })
     } catch (error) {
       console.error("Error loading dashboard data:", error)
-      // Set default values on error
+      setError("Failed to load dashboard data")
       setStats({
         totalUsers: 0,
         totalBookings: 0,
@@ -77,7 +97,13 @@ export function AdminDashboard() {
     }
   }
 
+  if (!isAdmin) {
+    console.log("AdminDashboard - Not admin, returning null");
+    return null
+  }
+
   if (loading) {
+    console.log("AdminDashboard - Loading state");
     return (
       <AdminLayout>
         <div className="flex items-center justify-center min-h-[400px]">
@@ -87,6 +113,18 @@ export function AdminDashboard() {
     )
   }
 
+  if (error) {
+    console.log("AdminDashboard - Error state");
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-red-500">{error}</div>
+        </div>
+      </AdminLayout>
+    )
+  }
+
+  console.log("AdminDashboard - Rendering dashboard");
   return (
     <AdminLayout>
       <div className="space-y-8">

@@ -13,8 +13,7 @@ import {
   signInWithPopup,
   updateProfile as firebaseUpdateProfile
 } from "firebase/auth"
-import { auth, googleProvider, githubProvider, db } from "@/lib/firebase"
-import { getDoc, doc } from "firebase/firestore"
+import { auth, googleProvider, githubProvider } from "@/lib/firebase"
 
 type UserRole = "student" | "admin" | "tutor"
 
@@ -58,6 +57,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userRole, setUserRole] = useState<UserRole | null>(null)
 
+  const checkUserClaims = async (user: User) => {
+    try {
+      // Force token refresh to get latest claims
+      await user.getIdToken(true);
+      const idTokenResult = await user.getIdTokenResult();
+      console.log("Checking user claims:", idTokenResult.claims);
+      
+      // If we have a role claim, use it
+      if (idTokenResult.claims.role) {
+        return idTokenResult.claims.role as UserRole;
+      }
+      
+      // If no role claim, check with the server
+      const response = await fetch("/api/auth/check-claims", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ uid: user.uid }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Server claims check:", data);
+        if (data.claims?.role) {
+          return data.claims.role as UserRole;
+        }
+      }
+      
+      return "student";
+    } catch (err) {
+      console.error("Error checking user claims:", err);
+      return "student";
+    }
+  };
+
   useEffect(() => {
      const initializeAuth = async () => {
       try {
@@ -72,26 +107,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        console.log("Auth state changed - User:", user);
         setUser(user)
-          // Create session cookie if needed
-          if (!document.cookie.includes('session=')) {
-            try {
-              await createSessionCookie(user)
-            } catch (cookieErr) {
-              console.error("Error creating session cookie:", cookieErr)
-            }
+        // Create session cookie if needed
+        if (!document.cookie.includes('session=')) {
+          try {
+            await createSessionCookie(user)
+          } catch (cookieErr) {
+            console.error("Error creating session cookie:", cookieErr)
           }
+        }
         setIsAuthenticated(true);
         
-        setUserRole("student") // Default role for new users
+        // Check user claims
+        const role = await checkUserClaims(user);
+        console.log("Setting user role:", role);
+        setUserRole(role);
       } else {
+        console.log("Auth state changed - No user");
         setUser(null)
         setIsAuthenticated(false)
         setUserRole(null)
       }
+      setLoading(false)
     })
-    return () => unsubscribe()
+
+    // Cleanup function
+    return () => {
+      console.log("Cleaning up auth subscription");
+      unsubscribe()
+    }
   }, [])
+
+  // Add a separate effect to handle role persistence
+  useEffect(() => {
+    const checkAndUpdateRole = async () => {
+      if (user && !userRole) {
+        console.log("Checking role persistence");
+        const role = await checkUserClaims(user);
+        console.log("Updating persisted role:", role);
+        setUserRole(role);
+      }
+    };
+
+    checkAndUpdateRole();
+  }, [user, userRole]);
 
   const signInWithGoogle = async () => {
     try {
@@ -103,19 +163,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Update user state
       setUser(result.user)
       setIsAuthenticated(true)
-       // Get user role
-          try {
-            const userDocRef = doc(db, "users", result.user.uid)
-            const userDoc = await getDoc(userDocRef)
-            if (userDoc.exists()) {
-              setUserRole(userDoc.data().role as UserRole)
-            } else {
-              setUserRole("student")
-            }
-          } catch (roleErr) {
-            console.error("Error getting user role:", roleErr)
-            setUserRole("student")
-          }
+      
+      // Force token refresh and get user role from claims
+      try {
+        await result.user.getIdToken(true);
+        const idTokenResult = await result.user.getIdTokenResult();
+        console.log("Google Sign In - ID Token Claims:", idTokenResult.claims);
+        const role = idTokenResult.claims.role as UserRole || "student";
+        console.log("Google Sign In - User Role:", role);
+        setUserRole(role);
+      } catch (roleErr) {
+        console.error("Error getting user role:", roleErr)
+        setUserRole("student")
+      }
       
       // Create session cookie
       await createSessionCookie(result.user)
