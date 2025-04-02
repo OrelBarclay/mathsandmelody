@@ -53,23 +53,6 @@ export default function DashboardPage() {
     return booking.status === "confirmed" && date > new Date();
   })
 
-  const pastBookings = bookings.filter(booking => {
-    const bookingDate = booking.date;
-    let date: Date;
-    
-    if (typeof bookingDate === 'object' && '_seconds' in bookingDate) {
-      // Handle Firestore Timestamp
-      date = new Date(bookingDate._seconds * 1000);
-    } else if (typeof bookingDate === 'string') {
-      // Handle ISO string
-      date = new Date(bookingDate);
-    } else {
-      return false;
-    }
-    
-    return date < new Date();
-  })
-
   return (
     <MainLayout>
       <div className="container mx-auto py-8 px-4">
