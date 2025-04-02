@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/firebase-admin";
 import { db } from "@/lib/firebase-admin";
+import { NextRequest } from "next/server";
+
+type Props = {
+  params: {
+    id: string;
+  };
+};
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  props: Props
 ) {
   try {
     const session = request.headers.get("cookie")?.split("session=")[1]?.split(";")[0];
@@ -21,7 +28,7 @@ export async function GET(
     }
 
     // Get the booking from Firestore
-    const bookingDoc = await db.collection("bookings").doc(params.id).get();
+    const bookingDoc = await db.collection("bookings").doc(props.params.id).get();
 
     if (!bookingDoc.exists) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
@@ -45,8 +52,8 @@ export async function GET(
 }
 
 export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  props: Props
 ) {
   try {
     const session = request.headers.get("cookie")?.split("session=")[1]?.split(";")[0];
@@ -65,13 +72,13 @@ export async function PATCH(
     const updates = await request.json();
 
     // Update the booking in Firestore
-    await db.collection("bookings").doc(params.id).update({
+    await db.collection("bookings").doc(props.params.id).update({
       ...updates,
       updatedAt: new Date(),
     });
 
     // Get the updated booking
-    const bookingDoc = await db.collection("bookings").doc(params.id).get();
+    const bookingDoc = await db.collection("bookings").doc(props.params.id).get();
 
     const booking = {
       id: bookingDoc.id,
@@ -91,8 +98,8 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  props: Props
 ) {
   try {
     const session = request.headers.get("cookie")?.split("session=")[1]?.split(";")[0];
@@ -109,7 +116,7 @@ export async function DELETE(
     }
 
     // Delete the booking from Firestore
-    await db.collection("bookings").doc(params.id).delete();
+    await db.collection("bookings").doc(props.params.id).delete();
 
     return NextResponse.json({ success: true });
   } catch (error) {
