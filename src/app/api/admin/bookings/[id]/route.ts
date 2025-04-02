@@ -1,18 +1,12 @@
 import { NextResponse, NextRequest } from "next/server";
 import { auth, db } from "@/lib/firebase-admin";
 
-type Props = {
-  params: {
-    id: string;
-  };
-};
-
 export async function GET(
   request: NextRequest,
-  props: Props
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = props.params;
+    const { id } = params;
     if (!id) {
       return NextResponse.json({ error: "Missing booking ID" }, { status: 400 });
     }
@@ -48,10 +42,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  props: Props
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = props.params;
+    const { id } = params;
     if (!id) {
       return NextResponse.json({ error: "Missing booking ID" }, { status: 400 });
     }
@@ -89,10 +83,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  props: Props
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = props.params;
+    const { id } = params;
     if (!id) {
       return NextResponse.json({ error: "Missing booking ID" }, { status: 400 });
     }
