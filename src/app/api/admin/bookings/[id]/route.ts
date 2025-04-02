@@ -1,12 +1,13 @@
 import { NextResponse, NextRequest } from "next/server";
 import { auth, db } from "@/lib/firebase-admin";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function GET(request: NextRequest, context: any) { 
   try {
+    const { params } = context; // 👈 Destructure params inside function
     const { id } = params;
+
     if (!id) {
       return NextResponse.json({ error: "Missing booking ID" }, { status: 400 });
     }
@@ -39,73 +40,3 @@ export async function GET(
     return NextResponse.json({ error: "Failed to fetch booking" }, { status: 500 });
   }
 }
-
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const { id } = params;
-    if (!id) {
-      return NextResponse.json({ error: "Missing booking ID" }, { status: 400 });
-    }
-
-    const session = request.cookies.get("session")?.value;
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const decodedClaims = await auth.verifySessionCookie(session);
-    if (decodedClaims.role !== "admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const updates = await request.json();
-    await db.collection("bookings").doc(id).update({
-      ...updates,
-      updatedAt: new Date(),
-    });
-
-    const bookingDoc = await db.collection("bookings").doc(id).get();
-    const booking = {
-      id: bookingDoc.id,
-      ...bookingDoc.data(),
-      createdAt: bookingDoc.data()?.createdAt?.toDate().toISOString(),
-      updatedAt: bookingDoc.data()?.updatedAt?.toDate().toISOString(),
-    };
-
-    return NextResponse.json({ booking });
-  } catch (error) {
-    console.error("Error updating admin booking:", error);
-    return NextResponse.json({ error: "Failed to update booking" }, { status: 500 });
-  }
-}
-
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const { id } = params;
-    if (!id) {
-      return NextResponse.json({ error: "Missing booking ID" }, { status: 400 });
-    }
-
-    const session = request.cookies.get("session")?.value;
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const decodedClaims = await auth.verifySessionCookie(session);
-    if (decodedClaims.role !== "admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    await db.collection("bookings").doc(id).delete();
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error deleting admin booking:", error);
-    return NextResponse.json({ error: "Failed to delete booking" }, { status: 500 });
-  }
-}
-
