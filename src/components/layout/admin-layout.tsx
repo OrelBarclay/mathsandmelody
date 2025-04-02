@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Users, Calendar, BookOpen, Home, BarChart, Settings, LogOut, User, Menu, X } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
-
+import Image from "next/image";
+import { useTheme } from "next-themes";
 interface AdminLayoutProps {
   children: ReactNode;
 }
@@ -15,6 +16,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
   const { signOut } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
 
   const handleLogout = async () => {
     try {
@@ -31,15 +34,22 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <div className="flex min-h-screen">
-      {/* Mobile menu button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="fixed top-4 left-4 z-50 md:hidden"
-        onClick={toggleSidebar}
-      >
-        {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-      </Button>
+      {/* Header with mobile menu button */}
+      <div className="fixed top-0 left-0 right-0 h-16 bg-background border-b z-40 flex items-center px-4 md:hidden">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="mr-4"
+        >
+          {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          
+        </Button>
+        <div className="flex items-center gap-2">
+          <Image src={isDarkMode ? "/images/darkLogo.png" : "/images/logo.png" } objectFit="contain" alt="Logo" width={110} height={110} />
+          <h1 className="text-xl font-bold">Admin Panel</h1>
+        </div>
+      </div>
 
       {/* Sidebar */}
       <div
@@ -49,7 +59,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         )}
       >
         <div className="flex flex-col h-full">
-          <div className="p-6">
+          <div className="p-6 md:block hidden">
             <h1 className="text-2xl font-bold">Admin Panel</h1>
           </div>
           <nav className="space-y-2 p-4 flex-1">
@@ -145,7 +155,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 p-4 md:p-8">
+      <div className="flex-1 p-4 md:p-8 mt-16 md:mt-0">
         {children}
       </div>
 

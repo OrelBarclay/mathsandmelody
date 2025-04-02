@@ -11,14 +11,6 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
   const [isChecking, setIsChecking] = useState(true)
 
   useEffect(() => {
-    console.log("RequireAdmin - Current state:", {
-      loading,
-      hasUser: !!user,
-      userRole,
-      isAdmin: userRole === 'admin',
-      isChecking,
-      path: window.location.pathname
-    });
 
     // Only redirect if we're not loading and we've checked the role
     if (!loading && !isChecking) {
@@ -43,7 +35,6 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
   }, [loading])
 
   if (loading || isChecking) {
-    console.log("RequireAdmin - Loading state");
     return (
       <div className="flex h-screen items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -61,6 +52,5 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
     return null
   }
 
-  console.log("RequireAdmin - Rendering admin content");
   return <>{children}</>
 } 

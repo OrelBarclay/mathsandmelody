@@ -62,7 +62,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Force token refresh to get latest claims
       await user.getIdToken(true);
       const idTokenResult = await user.getIdTokenResult();
-      console.log("Checking user claims:", idTokenResult.claims);
       
       // If we have a role claim, use it
       if (idTokenResult.claims.role) {
@@ -107,7 +106,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        console.log("Auth state changed - User:", user);
         setUser(user)
         // Create session cookie if needed
         if (!document.cookie.includes('session=')) {
@@ -121,7 +119,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // Check user claims
         const role = await checkUserClaims(user);
-        console.log("Setting user role:", role);
         setUserRole(role);
       } else {
         console.log("Auth state changed - No user");

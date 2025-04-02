@@ -44,7 +44,6 @@ export function AdminDashboard() {
 
   const loadDashboardData = useCallback(async () => {
     try {
-      console.log("AdminDashboard - Loading dashboard data");
       const [bookings, usersResponse] = await Promise.all([
         bookingService.getAllBookings(),
         fetch("/api/admin/users").then(res => {
@@ -75,11 +74,6 @@ export function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    console.log("AdminDashboard - Current state:", {
-      isAdmin,
-      loading,
-      hasError: !!error
-    });
 
     if (!isAdmin) {
       console.log("AdminDashboard - Not admin, redirecting to dashboard");
@@ -95,7 +89,6 @@ export function AdminDashboard() {
   }
 
   if (loading) {
-    console.log("AdminDashboard - Loading state");
     return (
       <AdminLayout>
         <div className="flex items-center justify-center min-h-[400px]">
@@ -116,7 +109,6 @@ export function AdminDashboard() {
     )
   }
 
-  console.log("AdminDashboard - Rendering dashboard");
   return (
     <AdminLayout>
       <div className="space-y-8">
