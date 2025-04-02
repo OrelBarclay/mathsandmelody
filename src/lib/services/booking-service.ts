@@ -28,9 +28,9 @@ export class BookingService {
     }
   }
 
-  async getBookingsByUserId(userId: string): Promise<Booking[]> {
+  async getBookingsByUserId(): Promise<Booking[]> {
     try {
-      const response = await fetch(`/api/admin/bookings?userId=${userId}`)
+      const response = await fetch('/api/bookings')
       if (!response.ok) {
         throw new Error('Failed to fetch user bookings')
       }

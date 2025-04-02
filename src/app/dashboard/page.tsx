@@ -19,7 +19,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (user) {
       const bookingService = new BookingService()
-      bookingService.getBookingsByUserId(user.uid)
+      bookingService.getBookingsByUserId()
         .then(setBookings)
         .finally(() => setLoading(false))
     }
