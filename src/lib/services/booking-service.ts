@@ -1,30 +1,36 @@
+interface FirestoreTimestamp {
+  _seconds: number;
+  _nanoseconds: number;
+}
+
 export interface Booking {
   id: string
   userId: string
   serviceId: string
   serviceType: string
-  date: string
+  date: string | FirestoreTimestamp
   time: string
   duration: number
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
   price: number
   notes?: string
-  createdAt: string
-  updatedAt: string
+  createdAt: string | FirestoreTimestamp
+  updatedAt: string | FirestoreTimestamp
 }
 
 export class BookingService {
   async getAllBookings(): Promise<Booking[]> {
     try {
-      const response = await fetch('/api/admin/bookings')
+      const response = await fetch("/api/admin/bookings");
       if (!response.ok) {
-        throw new Error('Failed to fetch bookings')
+        const data = await response.json();
+        throw new Error(data.error || "Failed to fetch bookings");
       }
-      const data = await response.json()
-      return data.bookings
+      const data = await response.json();
+      return data.bookings;
     } catch (error) {
-      console.error('Error fetching bookings:', error)
-      return []
+      console.error("Error fetching all bookings:", error);
+      throw error;
     }
   }
 

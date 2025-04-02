@@ -28,7 +28,7 @@ export function MainNav() {
     { href: "/", label: "Home" },
     { href: "/services", label: "Services" },
     { href: "/portfolio", label: "Portfolio" },
-    { href: "/book", label: "Book Now" },
+    { href: "/booking", label: "Book Now" },
     { href: "/contact", label: "Contact" },
   ]
 

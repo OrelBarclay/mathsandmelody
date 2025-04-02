@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { AdminLayout } from "@/components/layout/admin-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -42,22 +42,7 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    console.log("AdminDashboard - Current state:", {
-      isAdmin,
-      loading,
-      hasError: !!error
-    });
-
-    if (!isAdmin) {
-      console.log("AdminDashboard - Not admin, redirecting to dashboard");
-      router.replace('/dashboard')
-      return
-    }
-    loadDashboardData()
-  }, [isAdmin, router])
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       console.log("AdminDashboard - Loading dashboard data");
       const [bookings, usersResponse] = await Promise.all([
@@ -81,21 +66,28 @@ export function AdminDashboard() {
         revenueChange: 12.5,
         bookingsChange: 8.2,
       })
-    } catch (error) {
-      console.error("Error loading dashboard data:", error)
-      setError("Failed to load dashboard data")
-      setStats({
-        totalUsers: 0,
-        totalBookings: 0,
-        totalRevenue: 0,
-        pendingBookings: 0,
-        revenueChange: 0,
-        bookingsChange: 0,
-      })
+    } catch (err) {
+      console.error("Error loading dashboard data:", err);
+      setError(err instanceof Error ? err.message : "Failed to load dashboard data");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    console.log("AdminDashboard - Current state:", {
+      isAdmin,
+      loading,
+      hasError: !!error
+    });
+
+    if (!isAdmin) {
+      console.log("AdminDashboard - Not admin, redirecting to dashboard");
+      router.replace('/dashboard')
+      return
+    }
+    loadDashboardData()
+  }, [isAdmin, router, loadDashboardData, loading, error])
 
   if (!isAdmin) {
     console.log("AdminDashboard - Not admin, returning null");

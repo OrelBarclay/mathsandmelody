@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/firebase-admin";
 import { db } from "@/lib/firebase-admin";
-import { QueryDocumentSnapshot, DocumentData } from "firebase-admin/firestore";
+import { NextRequest } from "next/server";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const session = request.headers.get("cookie")?.split("session=")[1]?.split(";")[0];
     if (!session) {
@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     // Get all bookings from Firestore
     const bookingsSnapshot = await db.collection("bookings").get();
 
-    const bookings = bookingsSnapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({
+    const bookings = bookingsSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate().toISOString(),

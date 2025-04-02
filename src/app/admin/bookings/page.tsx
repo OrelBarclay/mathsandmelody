@@ -38,6 +38,7 @@ export default function BookingsPage() {
   const loadBookings = async () => {
     try {
       const data = await bookingService.getAllBookings()
+      console.log("Bookings data:", data)
       setBookings(data)
     } catch (error) {
       console.error("Error loading bookings:", error)
@@ -129,7 +130,22 @@ export default function BookingsPage() {
                   <TableCell className="font-medium">{booking.id}</TableCell>
                   <TableCell className="capitalize">{booking.serviceType}</TableCell>
                   <TableCell>
-                    {format(new Date(booking.date), "MMM d, yyyy h:mm a")}
+                    {(() => {
+                      try {
+                        if (!booking.date) return 'N/A';
+                        // Handle Firestore timestamp
+                        if (typeof booking.date === 'object' && '_seconds' in booking.date) {
+                          return format(new Date(booking.date._seconds * 1000), "MMM d, yyyy h:mm a");
+                        }
+                        // Handle ISO string
+                        const date = new Date(booking.date as string);
+                        if (isNaN(date.getTime())) return 'Invalid Date';
+                        return format(date, "MMM d, yyyy h:mm a");
+                      } catch (error) {
+                        console.error("Error formatting date:", error, booking.date);
+                        return 'Invalid Date';
+                      }
+                    })()}
                   </TableCell>
                   <TableCell>{booking.duration ? `${booking.duration} min` : 'N/A'}</TableCell>
                   <TableCell>${booking.price}</TableCell>

@@ -11,9 +11,9 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Verify admin role using ID token
-    const decodedToken = await auth.verifyIdToken(session)
-    if (decodedToken.role !== "admin") {
+    // Verify admin role using session cookie
+    const decodedClaims = await auth.verifySessionCookie(session)
+    if (decodedClaims.role !== "admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -24,7 +24,7 @@ export async function GET() {
       uid: user.uid,
       email: user.email,
       displayName: user.displayName,
-      role: JSON.parse(user.customClaims?.customAttributes || "{}").role || "student",
+      role: user.customClaims?.role || "student",
       createdAt: user.metadata.creationTime,
       lastSignIn: user.metadata.lastSignInTime,
     }))
@@ -48,9 +48,9 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Verify admin role using ID token
-    const decodedToken = await auth.verifyIdToken(session)
-    if (decodedToken.role !== "admin") {
+    // Verify admin role using session cookie
+    const decodedClaims = await auth.verifySessionCookie(session)
+    if (decodedClaims.role !== "admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 

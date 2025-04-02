@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { auth } from "@/lib/firebase-admin"
 
 export async function POST(request: Request) {
   try {
@@ -11,10 +12,14 @@ export async function POST(request: Request) {
       )
     }
 
-    // Set the ID token as a cookie
+    // Create a session cookie using Firebase Admin
+    const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
+    const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
+
+    // Set the session cookie
     const response = NextResponse.json({ success: true })
-    response.cookies.set("session", idToken, {
-      maxAge: 60 * 60 * 24 * 5, // 5 days
+    response.cookies.set("session", sessionCookie, {
+      maxAge: expiresIn,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       path: "/",

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { AdminLayout } from "@/components/layout/admin-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -49,11 +49,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d">("30d")
 
-  useEffect(() => {
-    loadAnalytics()
-  }, [timeRange])
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     try {
       const bookings = await bookingService.getAllBookings()
       const startDate = subMonths(new Date(), timeRange === "7d" ? 1 : timeRange === "30d" ? 1 : 3)
@@ -109,7 +105,11 @@ export default function AnalyticsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [timeRange])
+
+  useEffect(() => {
+    loadAnalytics()
+  }, [loadAnalytics])
 
   if (loading) {
     return (

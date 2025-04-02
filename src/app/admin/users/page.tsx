@@ -19,6 +19,8 @@ interface AdminUser {
   email: string | null
   displayName: string | null
   role: string
+  createdAt: string
+  lastSignIn: string | null
 }
 
 export default function AdminUsersPage() {
@@ -131,6 +133,10 @@ export default function AdminUsersPage() {
                   <div>
                     <p className="font-medium">{user.displayName || "No name"}</p>
                     <p className="text-sm text-muted-foreground">{user.email}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Joined: {new Date(user.createdAt).toLocaleDateString()}
+                      {user.lastSignIn && ` • Last sign in: ${new Date(user.lastSignIn).toLocaleDateString()}`}
+                    </p>
                   </div>
                   <div className="flex items-center gap-4">
                     <Select
