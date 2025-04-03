@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
 import Stripe from "stripe";
 import { db } from "@/lib/firebase-admin";
 
@@ -12,8 +11,10 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 export async function POST(request: Request) {
   try {
     const body = await request.text();
-    const headersList = await headers();
-    const signature = headersList.get("stripe-signature");
+    const signature = request.headers.get("stripe-signature");
+
+    console.log("Webhook received with signature:", signature ? "present" : "missing");
+    console.log("Webhook secret configured:", webhookSecret ? "yes" : "no");
 
     if (!signature) {
       console.error("Missing stripe-signature header");
@@ -27,6 +28,7 @@ export async function POST(request: Request) {
 
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      console.log("Successfully constructed Stripe event:", event.type);
     } catch (err) {
       console.error("Error verifying webhook signature:", err);
       return NextResponse.json(
@@ -36,6 +38,7 @@ export async function POST(request: Request) {
     }
 
     console.log("Processing webhook event:", event.type);
+    console.log("Event data:", JSON.stringify(event.data, null, 2));
 
     // Handle the event
     switch (event.type) {
