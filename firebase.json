@@ -5,7 +5,28 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-    ]
+    ],
+    "public": "out",
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      }
+    ],
+    "environment": {
+      "STRIPE_WEBHOOK_SECRET": "whsec_QyZQrXuGqqGIcpiGauHrURd7BUCzFaP9"
+    }
   },
   "apphosting": {
     "region": "us-central1",

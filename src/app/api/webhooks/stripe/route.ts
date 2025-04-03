@@ -14,6 +14,8 @@ interface VerificationDetails {
   bodyLength: number;
   signatureLength: number;
   secretLength: number;
+  signature: string;
+  secret: string;
 }
 
 interface DebugError {
@@ -25,6 +27,12 @@ interface DebugError {
 export async function POST(request: Request) {
   const debugInfo = {
     timestamp: new Date().toISOString(),
+    environment: {
+      hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
+      hasWebhookSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
+      webhookSecretLength: process.env.STRIPE_WEBHOOK_SECRET?.length || 0,
+      webhookSecretPrefix: process.env.STRIPE_WEBHOOK_SECRET?.substring(0, 5) || '',
+    },
     headers: {} as Record<string, string>,
     body: "",
     signature: "",
@@ -63,10 +71,10 @@ export async function POST(request: Request) {
 
     if (!webhookSecret) {
       debugInfo.error = {
-        message: "Webhook secret is not configured"
+        message: "STRIPE_WEBHOOK_SECRET is not configured"
       };
       return NextResponse.json(
-        { error: "Webhook secret is not configured", debug: debugInfo },
+        { error: "STRIPE_WEBHOOK_SECRET is not configured", debug: debugInfo },
         { status: 500 }
       );
     }
@@ -78,14 +86,26 @@ export async function POST(request: Request) {
       debugInfo.verificationDetails = {
         bodyLength: body.length,
         signatureLength: signature.length,
-        secretLength: webhookSecret.length
+        secretLength: webhookSecret.length,
+        signature: signature,
+        secret: webhookSecret.substring(0, 4) + '...' // Only log first 4 chars for security
       };
+
+      // Log the exact values being used for verification
+      console.log('Webhook verification attempt:', {
+        bodyLength: body.length,
+        signatureLength: signature.length,
+        secretLength: webhookSecret.length,
+        signature: signature,
+        secret: webhookSecret.substring(0, 4) + '...'
+      });
 
       // Verify the webhook signature
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
       debugInfo.eventType = event.type;
       debugInfo.eventData = event.data;
     } catch (err) {
+      console.error('Webhook verification error:', err);
       debugInfo.error = {
         message: err instanceof Error ? err.message : String(err),
         verificationDetails: debugInfo.verificationDetails
@@ -184,6 +204,7 @@ export async function POST(request: Request) {
       debug: debugInfo 
     });
   } catch (error) {
+    console.error('Webhook handler error:', error);
     debugInfo.error = {
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined
