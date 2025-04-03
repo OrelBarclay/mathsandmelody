@@ -8,34 +8,63 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+interface VerificationDetails {
+  bodyLength: number;
+  signatureLength: number;
+  secretLength: number;
+}
+
+interface DebugError {
+  message: string;
+  verificationDetails?: VerificationDetails;
+  stack?: string;
+}
+
 export async function POST(request: Request) {
+  const debugInfo = {
+    timestamp: new Date().toISOString(),
+    headers: {} as Record<string, string>,
+    body: "",
+    signature: "",
+    webhookSecretConfigured: false,
+    verificationDetails: {} as VerificationDetails,
+    eventType: "",
+    eventData: null as Stripe.Event.Data.Object | null,
+    error: null as DebugError | null
+  };
+
   try {
-    console.log("Webhook received");
-    
-    // Log all headers for debugging
+    // Get and store headers
     const headersList = Array.from(request.headers.entries());
-    console.log("Request headers:", JSON.stringify(headersList, null, 2));
-    
+    headersList.forEach(([key, value]) => {
+      debugInfo.headers[key] = value;
+    });
+
+    // Get and store body
     const body = await request.text();
-    console.log("Request body:", body);
-    
+    debugInfo.body = body;
+
+    // Get and store signature
     const signature = request.headers.get("stripe-signature");
-    console.log("Stripe signature:", signature);
-    console.log("Webhook secret configured:", webhookSecret ? "yes" : "no");
-    console.log("Webhook secret length:", webhookSecret ? webhookSecret.length : 0);
+    debugInfo.signature = signature || "";
+    debugInfo.webhookSecretConfigured = !!webhookSecret;
 
     if (!signature) {
-      console.error("Missing stripe-signature header");
+      debugInfo.error = {
+        message: "Missing stripe-signature header"
+      };
       return NextResponse.json(
-        { error: "Missing stripe-signature header" },
+        { error: "Missing stripe-signature header", debug: debugInfo },
         { status: 400 }
       );
     }
 
     if (!webhookSecret) {
-      console.error("Webhook secret is not configured");
+      debugInfo.error = {
+        message: "Webhook secret is not configured"
+      };
       return NextResponse.json(
-        { error: "Webhook secret is not configured" },
+        { error: "Webhook secret is not configured", debug: debugInfo },
         { status: 500 }
       );
     }
@@ -43,35 +72,30 @@ export async function POST(request: Request) {
     let event: Stripe.Event;
 
     try {
-      // Log the exact values being used for verification
-      console.log("Verifying webhook with:", {
+      // Store verification details
+      debugInfo.verificationDetails = {
         bodyLength: body.length,
         signatureLength: signature.length,
         secretLength: webhookSecret.length
-      });
+      };
 
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-      console.log("Successfully constructed Stripe event:", event.type);
+      debugInfo.eventType = event.type;
+      debugInfo.eventData = event.data;
     } catch (err) {
-      console.error("Error verifying webhook signature:", err);
-      // Log more details about the verification failure
-      console.error("Verification failure details:", {
-        error: err instanceof Error ? err.message : String(err),
-        bodyLength: body.length,
-        signatureLength: signature.length,
-        secretLength: webhookSecret.length
-      });
+      debugInfo.error = {
+        message: err instanceof Error ? err.message : String(err),
+        verificationDetails: debugInfo.verificationDetails
+      };
       return NextResponse.json(
         { 
           error: "Invalid signature", 
-          details: err instanceof Error ? err.message : String(err)
+          details: err instanceof Error ? err.message : String(err),
+          debug: debugInfo
         },
         { status: 400 }
       );
     }
-
-    console.log("Processing webhook event:", event.type);
-    console.log("Event data:", JSON.stringify(event.data, null, 2));
 
     // Handle the event
     switch (event.type) {
@@ -80,14 +104,15 @@ export async function POST(request: Request) {
         const bookingId = session.metadata?.bookingId;
 
         if (!bookingId) {
-          console.error("No booking ID in session metadata");
+          debugInfo.error = {
+            message: "No booking ID in session metadata"
+          };
           return NextResponse.json(
-            { error: "No booking ID provided" },
+            { error: "No booking ID provided", debug: debugInfo },
             { status: 400 }
           );
         }
 
-        // Update the booking status to confirmed
         await db.collection("bookings").doc(bookingId).update({
           status: "confirmed",
           updatedAt: new Date(),
@@ -102,14 +127,15 @@ export async function POST(request: Request) {
         const bookingId = paymentIntent.metadata?.bookingId;
 
         if (!bookingId) {
-          console.error("No booking ID in payment intent metadata");
+          debugInfo.error = {
+            message: "No booking ID in payment intent metadata"
+          };
           return NextResponse.json(
-            { error: "No booking ID provided" },
+            { error: "No booking ID provided", debug: debugInfo },
             { status: 400 }
           );
         }
 
-        // Update the booking status to confirmed
         await db.collection("bookings").doc(bookingId).update({
           status: "confirmed",
           updatedAt: new Date(),
@@ -124,14 +150,15 @@ export async function POST(request: Request) {
         const bookingId = paymentIntent.metadata?.bookingId;
 
         if (!bookingId) {
-          console.error("No booking ID in payment intent metadata");
+          debugInfo.error = {
+            message: "No booking ID in payment intent metadata"
+          };
           return NextResponse.json(
-            { error: "No booking ID provided" },
+            { error: "No booking ID provided", debug: debugInfo },
             { status: 400 }
           );
         }
 
-        // Update the booking status to cancelled
         await db.collection("bookings").doc(bookingId).update({
           status: "cancelled",
           updatedAt: new Date(),
@@ -141,17 +168,25 @@ export async function POST(request: Request) {
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        debugInfo.error = {
+          message: `Unhandled event type: ${event.type}`
+        };
     }
 
-    return NextResponse.json({ received: true });
+    return NextResponse.json({ 
+      received: true, 
+      debug: debugInfo 
+    });
   } catch (error) {
-    console.error("Error handling webhook:", error);
+    debugInfo.error = {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    };
     return NextResponse.json(
       { 
         error: "Webhook handler failed", 
         details: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
+        debug: debugInfo
       },
       { status: 500 }
     );
