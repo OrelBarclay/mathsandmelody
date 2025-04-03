@@ -64,7 +64,7 @@ export class BookingService {
 
   async createBooking(booking: Omit<Booking, 'id' | 'createdAt' | 'updatedAt'>): Promise<Booking | null> {
     try {
-      const response = await fetch('/api/admin/bookings', {
+      const response = await fetch('/api/bookings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +72,8 @@ export class BookingService {
         body: JSON.stringify(booking),
       })
       if (!response.ok) {
-        throw new Error('Failed to create booking')
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to create booking')
       }
       const data = await response.json()
       return data.booking

@@ -32,4 +32,44 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
+}
+
+export async function POST(request: Request) {
+  try {
+    const session = request.headers.get("cookie")?.split("session=")[1]?.split(";")[0];
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Verify the session and get the user
+    const decodedClaims = await auth.verifySessionCookie(session);
+    const userId = decodedClaims.uid;
+
+    const bookingData = await request.json();
+
+    // Create a new booking document
+    const bookingRef = await db.collection("bookings").add({
+      ...bookingData,
+      userId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    // Get the created booking
+    const bookingDoc = await bookingRef.get();
+    const booking = {
+      id: bookingDoc.id,
+      ...bookingDoc.data(),
+      createdAt: bookingDoc.data()?.createdAt?.toDate().toISOString(),
+      updatedAt: bookingDoc.data()?.updatedAt?.toDate().toISOString(),
+    };
+
+    return NextResponse.json({ booking });
+  } catch (error) {
+    console.error("Error creating booking:", error);
+    return NextResponse.json(
+      { error: "Failed to create booking" },
+      { status: 500 }
+    );
+  }
 } 
