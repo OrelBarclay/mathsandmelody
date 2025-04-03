@@ -30,6 +30,7 @@ export function BookingForm() {
     notes: "",
   })
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) {
@@ -40,6 +41,8 @@ export function BookingForm() {
     setLoading(true)
     setError(null)
 
+   
+
     try {
       // Create booking
       const booking = await bookingService.createBooking({
@@ -48,9 +51,9 @@ export function BookingForm() {
         serviceType: formData.serviceType,
         date: new Date(formData.date).toISOString(),
         time: new Date(formData.date).toLocaleTimeString(),
-        duration: parseInt(formData.duration),
+        duration: parseFloat(formData.duration),
         status: "pending",
-        price: formData.serviceType === "math" ? 50 : formData.serviceType === "music" ? 60 : 40,
+        price: formData.serviceType === "math" ? 50 * parseFloat(formData.duration) : formData.serviceType === "music" ? 60 * parseFloat(formData.duration) : 45 * parseFloat(formData.duration),
         notes: formData.notes,
       })
 
