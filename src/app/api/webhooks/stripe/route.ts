@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { db } from "@/lib/firebase-admin";
 
+// Initialize Stripe with the secret key from service account
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-02-24.acacia",
+  typescript: true,
 });
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -79,6 +81,7 @@ export async function POST(request: Request) {
         secretLength: webhookSecret.length
       };
 
+      // Verify the webhook signature
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
       debugInfo.eventType = event.type;
       debugInfo.eventData = event.data;
@@ -113,6 +116,7 @@ export async function POST(request: Request) {
           );
         }
 
+        // Use admin SDK to update the booking
         await db.collection("bookings").doc(bookingId).update({
           status: "confirmed",
           updatedAt: new Date(),
@@ -136,6 +140,7 @@ export async function POST(request: Request) {
           );
         }
 
+        // Use admin SDK to update the booking
         await db.collection("bookings").doc(bookingId).update({
           status: "confirmed",
           updatedAt: new Date(),
@@ -159,6 +164,7 @@ export async function POST(request: Request) {
           );
         }
 
+        // Use admin SDK to update the booking
         await db.collection("bookings").doc(bookingId).update({
           status: "cancelled",
           updatedAt: new Date(),
