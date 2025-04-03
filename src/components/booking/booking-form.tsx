@@ -1,4 +1,3 @@
-"use client"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -53,7 +52,7 @@ export function BookingForm() {
         time: new Date(formData.date).toLocaleTimeString(),
         duration: parseFloat(formData.duration),
         status: "pending",
-        price: formData.serviceType === "math" ? 50 * parseFloat(formData.duration) : formData.serviceType === "music" ? 60 * parseFloat(formData.duration) : 45 * parseFloat(formData.duration),
+        price: formData.serviceType === "math" ? 50 * (parseFloat(formData.duration)/60) : formData.serviceType === "music" ? 60 * (parseFloat(formData.duration)/60) : 45 * (parseFloat(formData.duration)/60 ),
         notes: formData.notes,
       })
 
