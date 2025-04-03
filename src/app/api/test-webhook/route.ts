@@ -15,12 +15,9 @@ export async function GET() {
       );
     }
 
-    if (!process.env.NEXT_PUBLIC_APP_URL) {
-      return NextResponse.json(
-        { error: "NEXT_PUBLIC_APP_URL is not configured" },
-        { status: 500 }
-      );
-    }
+    // Use the hosted domain URL directly
+    const webhookUrl = "https://mathsandmelody--mathandmelody-a677f.us-central1.hosted.app/api/webhooks/stripe";
+    console.log("Using webhook URL:", webhookUrl);
 
     console.log("Creating test payment intent...");
     // Create a test payment intent
@@ -52,9 +49,6 @@ export async function GET() {
     });
     console.log("Signature generated");
 
-    const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/stripe`;
-    console.log("Sending webhook to:", webhookUrl);
-
     // Send the event to our webhook handler
     const response = await fetch(webhookUrl, {
       method: "POST",
@@ -73,7 +67,9 @@ export async function GET() {
       result,
       webhookUrl,
       eventId: event.id,
-      paymentIntentId: paymentIntent.id
+      paymentIntentId: paymentIntent.id,
+      status: response.status,
+      statusText: response.statusText
     });
   } catch (error) {
     console.error("Error testing webhook:", error);

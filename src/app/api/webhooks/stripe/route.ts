@@ -43,10 +43,24 @@ export async function POST(request: Request) {
     let event: Stripe.Event;
 
     try {
+      // Log the exact values being used for verification
+      console.log("Verifying webhook with:", {
+        bodyLength: body.length,
+        signatureLength: signature.length,
+        secretLength: webhookSecret.length
+      });
+
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
       console.log("Successfully constructed Stripe event:", event.type);
     } catch (err) {
       console.error("Error verifying webhook signature:", err);
+      // Log more details about the verification failure
+      console.error("Verification failure details:", {
+        error: err instanceof Error ? err.message : String(err),
+        bodyLength: body.length,
+        signatureLength: signature.length,
+        secretLength: webhookSecret.length
+      });
       return NextResponse.json(
         { 
           error: "Invalid signature", 
