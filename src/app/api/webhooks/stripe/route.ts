@@ -16,6 +16,7 @@ export async function POST(request: Request) {
     const signature = headersList.get("stripe-signature");
 
     if (!signature) {
+      console.error("Missing stripe-signature header");
       return NextResponse.json(
         { error: "Missing stripe-signature header" },
         { status: 400 }
@@ -33,6 +34,8 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    console.log("Processing webhook event:", event.type);
 
     // Handle the event
     switch (event.type) {
@@ -53,6 +56,28 @@ export async function POST(request: Request) {
           status: "confirmed",
           updatedAt: new Date(),
           paymentIntentId: session.payment_intent,
+        });
+
+        break;
+      }
+
+      case "payment_intent.succeeded": {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const bookingId = paymentIntent.metadata?.bookingId;
+
+        if (!bookingId) {
+          console.error("No booking ID in payment intent metadata");
+          return NextResponse.json(
+            { error: "No booking ID provided" },
+            { status: 400 }
+          );
+        }
+
+        // Update the booking status to confirmed
+        await db.collection("bookings").doc(bookingId).update({
+          status: "confirmed",
+          updatedAt: new Date(),
+          paymentIntentId: paymentIntent.id,
         });
 
         break;
