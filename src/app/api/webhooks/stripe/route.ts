@@ -22,12 +22,21 @@ export async function POST(request: Request) {
     const signature = request.headers.get("stripe-signature");
     console.log("Stripe signature:", signature);
     console.log("Webhook secret configured:", webhookSecret ? "yes" : "no");
+    console.log("Webhook secret length:", webhookSecret ? webhookSecret.length : 0);
 
     if (!signature) {
       console.error("Missing stripe-signature header");
       return NextResponse.json(
         { error: "Missing stripe-signature header" },
         { status: 400 }
+      );
+    }
+
+    if (!webhookSecret) {
+      console.error("Webhook secret is not configured");
+      return NextResponse.json(
+        { error: "Webhook secret is not configured" },
+        { status: 500 }
       );
     }
 
@@ -39,7 +48,10 @@ export async function POST(request: Request) {
     } catch (err) {
       console.error("Error verifying webhook signature:", err);
       return NextResponse.json(
-        { error: "Invalid signature" },
+        { 
+          error: "Invalid signature", 
+          details: err instanceof Error ? err.message : String(err)
+        },
         { status: 400 }
       );
     }
@@ -122,7 +134,11 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Error handling webhook:", error);
     return NextResponse.json(
-      { error: "Webhook handler failed" },
+      { 
+        error: "Webhook handler failed", 
+        details: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      },
       { status: 500 }
     );
   }
