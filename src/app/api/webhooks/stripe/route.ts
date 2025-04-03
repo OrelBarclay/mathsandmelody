@@ -10,10 +10,17 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(request: Request) {
   try {
+    console.log("Webhook received");
+    
+    // Log all headers for debugging
+    const headersList = Array.from(request.headers.entries());
+    console.log("Request headers:", JSON.stringify(headersList, null, 2));
+    
     const body = await request.text();
+    console.log("Request body:", body);
+    
     const signature = request.headers.get("stripe-signature");
-
-    console.log("Webhook received with signature:", signature ? "present" : "missing");
+    console.log("Stripe signature:", signature);
     console.log("Webhook secret configured:", webhookSecret ? "yes" : "no");
 
     if (!signature) {
