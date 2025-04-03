@@ -36,6 +36,11 @@ export async function POST(request: Request) {
       metadata: {
         bookingId,
       },
+      payment_intent_data: {
+        metadata: {
+          bookingId,
+        },
+      },
     })
 
     return NextResponse.json({ sessionId: session.id })
