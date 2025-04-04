@@ -9,8 +9,21 @@ import { RoleBasedRedirect } from "@/components/auth/role-based-redirect";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Math & Melody Academy",
-  description: "Expert tutoring in Mathematics, Music, and Sports. Book your sessions today!",
+  metadataBase: new URL('https://mathsandmelody.com'),
+  title: {
+    default: "Math & Melody Academy",
+    template: "%s | Math & Melody Academy"
+  },
+  description: "Expert tutoring in Mathematics, Music, and Sports. Professional instruction tailored to your needs. Book your sessions today!",
+  keywords: ["math tutoring", "music lessons", "sports coaching", "private tutor", "online tutoring", "math tutor", "piano lessons", "academic excellence"],
+  authors: [{ name: "Math & Melody Academy" }],
+  creator: "Math & Melody Academy",
+  publisher: "Math & Melody Academy",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   icons: {
     icon: [
       { url: "/images/favicon.ico" },
@@ -44,21 +57,45 @@ export const metadata: Metadata = {
     title: "Math & Melody Academy"
   },
   openGraph: {
-    title: "Math & Melody Academy",
-    description: "Expert tutoring in Mathematics, Music, and Sports. Book your sessions today!",
     type: "website",
     locale: "en_US",
+    url: "https://mathsandmelody.com",
     siteName: "Math & Melody Academy",
+    title: "Math & Melody Academy",
+    description: "Expert tutoring in Mathematics, Music, and Sports. Professional instruction tailored to your needs.",
+    images: [
+      {
+        url: "/images/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Math & Melody Academy"
+      }
+    ]
   },
   twitter: {
     card: "summary_large_image",
     title: "Math & Melody Academy",
-    description: "Expert tutoring in Mathematics, Music, and Sports. Book your sessions today!",
+    description: "Expert tutoring in Mathematics, Music, and Sports. Professional instruction tailored to your needs.",
+    images: ["/images/twitter-image.jpg"],
+    creator: "@mathandmelody",
+    site: "@mathandmelody"
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
+  verification: {
+    google: "your-google-verification-code",
+    yandex: "your-yandex-verification-code",
+    yahoo: "your-yahoo-verification-code"
+  }
 };
 
 export default function RootLayout({

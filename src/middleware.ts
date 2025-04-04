@@ -5,6 +5,11 @@ export async function middleware(request: NextRequest) {
 
   // Check if the request is for an API route
   if (request.nextUrl.pathname.startsWith("/api/")) {
+    // Skip session check for webhook endpoints
+    if (request.nextUrl.pathname.startsWith("/api/webhooks/")) {
+      return NextResponse.next();
+    }
+
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -17,7 +22,7 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/admin") ||
     request.nextUrl.pathname.startsWith("/tutor")
   )) {
-    const signInUrl = new URL("/sign-in", request.url);
+    const signInUrl = new URL("/auth/signin", request.url);
     signInUrl.searchParams.set("from", request.nextUrl.pathname);
     return NextResponse.redirect(signInUrl);
   }
