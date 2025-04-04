@@ -54,6 +54,71 @@ export function AdminDashboard() {
         }),
       ])
 
+      // Get current and previous month dates
+      const now = new Date()
+      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+      const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0)
+
+      // Filter bookings by month
+      const currentMonthBookings = bookings.filter(booking => {
+        const bookingDate = booking.date;
+        let date: Date;
+        
+        if (typeof bookingDate === 'object' && '_seconds' in bookingDate) {
+          date = new Date(bookingDate._seconds * 1000);
+        } else if (typeof bookingDate === 'string') {
+          date = new Date(bookingDate);
+        } else {
+          return false;
+        }
+        
+        return date >= currentMonthStart && date <= now;
+      });
+
+      const previousMonthBookings = bookings.filter(booking => {
+        const bookingDate = booking.date;
+        let date: Date;
+        
+        if (typeof bookingDate === 'object' && '_seconds' in bookingDate) {
+          date = new Date(bookingDate._seconds * 1000);
+        } else if (typeof bookingDate === 'string') {
+          date = new Date(bookingDate);
+        } else {
+          return false;
+        }
+        
+        return date >= previousMonthStart && date <= previousMonthEnd;
+      });
+
+      // Calculate revenues
+      const currentMonthRevenue = currentMonthBookings.reduce((sum, booking) => sum + booking.price, 0)
+      const previousMonthRevenue = previousMonthBookings.reduce((sum, booking) => sum + booking.price, 0)
+
+      // Calculate changes
+      const revenueChange = previousMonthRevenue === 0 
+        ? 100 
+        : ((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue) * 100
+
+      const bookingsChange = previousMonthBookings.length === 0 
+        ? 100 
+        : ((currentMonthBookings.length - previousMonthBookings.length) / previousMonthBookings.length) * 100
+
+      console.log('Dashboard calculations:', {
+        currentMonth: {
+          bookings: currentMonthBookings.length,
+          revenue: currentMonthRevenue
+        },
+        previousMonth: {
+          bookings: previousMonthBookings.length,
+          revenue: previousMonthRevenue
+        },
+        changes: {
+          revenue: revenueChange,
+          bookings: bookingsChange
+        }
+      })
+
       const totalRevenue = bookings.reduce((sum, booking) => sum + booking.price, 0)
       const pendingBookings = bookings.filter(b => b.status === "pending").length
 
@@ -62,8 +127,8 @@ export function AdminDashboard() {
         totalBookings: bookings.length,
         totalRevenue,
         pendingBookings,
-        revenueChange: 12.5,
-        bookingsChange: 8.2,
+        revenueChange,
+        bookingsChange,
       })
     } catch (err) {
       console.error("Error loading dashboard data:", err);
