@@ -13,15 +13,29 @@ export const metadata: Metadata = {
   description: "Expert tutoring in Mathematics, Music, and Sports. Book your sessions today!",
   icons: {
     icon: [
-      { url: "/images/favicon.ico" },
-      { url: "/images/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/images/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/favicon-512x512.png", sizes: "512x512", type: "image/png" }
     ],
     apple: [
-      { url: "/images/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }
     ],
+    other: [
+      {
+        rel: "mask-icon",
+        url: "/safari-pinned-tab.svg",
+        color: "#000000"
+      }
+    ]
   },
-  manifest: "/images/site.webmanifest",
+  manifest: "/site.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Math & Melody Academy"
+  },
   openGraph: {
     title: "Math & Melody Academy",
     description: "Expert tutoring in Mathematics, Music, and Sports. Book your sessions today!",
@@ -47,6 +61,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
+        <meta name="msapplication-TileColor" content="#ffffff" />
+        <meta name="theme-color" content="#ffffff" />
+      </head>
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"
