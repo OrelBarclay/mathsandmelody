@@ -16,7 +16,7 @@ import {
   BarChart,
   Bar,
 } from "recharts"
-import { format, subMonths, eachDayOfInterval, startOfDay } from "date-fns"
+import { format, subMonths, subDays, eachDayOfInterval, startOfDay } from "date-fns"
 
 const bookingService = new BookingService()
 
@@ -55,8 +55,38 @@ export default function AnalyticsPage() {
     try {
       const bookings = await bookingService.getAllBookings()
       const currentEndDate = new Date()
-      const currentStartDate = subMonths(currentEndDate, timeRange === "7d" ? 1 : timeRange === "30d" ? 1 : 3)
-      const previousStartDate = subMonths(currentStartDate, timeRange === "7d" ? 1 : timeRange === "30d" ? 1 : 3)
+      
+      // Calculate current period start date
+      let currentStartDate: Date;
+      if (timeRange === "7d") {
+        currentStartDate = subDays(currentEndDate, 7);
+      } else if (timeRange === "30d") {
+        currentStartDate = subDays(currentEndDate, 30);
+      } else {
+        currentStartDate = subMonths(currentEndDate, 3);
+      }
+      
+      // Calculate previous period start date
+      let previousStartDate: Date;
+      if (timeRange === "7d") {
+        previousStartDate = subDays(currentStartDate, 7);
+      } else if (timeRange === "30d") {
+        previousStartDate = subDays(currentStartDate, 30);
+      } else {
+        previousStartDate = subMonths(currentStartDate, 3);
+      }
+
+      console.log('Time ranges:', {
+        timeRange,
+        currentPeriod: {
+          start: currentStartDate.toISOString(),
+          end: currentEndDate.toISOString()
+        },
+        previousPeriod: {
+          start: previousStartDate.toISOString(),
+          end: currentStartDate.toISOString()
+        }
+      });
 
       // Filter bookings for current and previous periods
       const currentPeriodBookings = bookings.filter((b) => {
@@ -89,6 +119,13 @@ export default function AnalyticsPage() {
         return date >= previousStartDate && date < currentStartDate;
       });
 
+      console.log('Booking counts:', {
+        currentPeriod: currentPeriodBookings.length,
+        previousPeriod: previousPeriodBookings.length,
+        currentRevenue: currentPeriodBookings.reduce((sum, b) => sum + b.price, 0),
+        previousRevenue: previousPeriodBookings.reduce((sum, b) => sum + b.price, 0)
+      });
+
       // Calculate revenue for both periods
       const currentRevenue = currentPeriodBookings.reduce((sum, b) => sum + b.price, 0);
       const previousRevenue = previousPeriodBookings.reduce((sum, b) => sum + b.price, 0);
@@ -97,6 +134,12 @@ export default function AnalyticsPage() {
       const revenueChange = previousRevenue === 0 
         ? 100 // If previous revenue was 0, treat as 100% increase
         : ((currentRevenue - previousRevenue) / previousRevenue) * 100;
+
+      console.log('Revenue calculation:', {
+        currentRevenue,
+        previousRevenue,
+        revenueChange
+      });
 
       // Generate daily data for the chart
       const days = eachDayOfInterval({ start: currentStartDate, end: currentEndDate })
