@@ -8,7 +8,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   typescript: true,
 });
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+// Try different ways to get the webhook secret
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || 
+                     process.env.NEXT_PUBLIC_STRIPE_WEBHOOK_SECRET ||
+                     'whsec_QyZQrXuGqqGIcpiGauHrURd7BUCzFaP9';
 
 interface VerificationDetails {
   bodyLength: number;
@@ -30,8 +33,9 @@ export async function POST(request: Request) {
     environment: {
       hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
       hasWebhookSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
-      webhookSecretLength: process.env.STRIPE_WEBHOOK_SECRET?.length || 0,
-      webhookSecretPrefix: process.env.STRIPE_WEBHOOK_SECRET?.substring(0, 5) || '',
+      hasNextPublicWebhookSecret: !!process.env.NEXT_PUBLIC_STRIPE_WEBHOOK_SECRET,
+      webhookSecretLength: webhookSecret.length,
+      webhookSecretPrefix: webhookSecret.substring(0, 5),
     },
     headers: {} as Record<string, string>,
     body: "",

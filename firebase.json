@@ -1,35 +1,14 @@
 {
-  "hosting": {
+  "apphosting": {
     "source": ".",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "public": "out",
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ],
-    "headers": [
-      {
-        "source": "**",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache, no-store, must-revalidate"
-          }
-        ]
-      }
-    ],
+    "region": "us-central1",
+    "backend": "mathsandmelody",
     "environment": {
       "STRIPE_WEBHOOK_SECRET": "whsec_QyZQrXuGqqGIcpiGauHrURd7BUCzFaP9"
+    },
+    "build": {
+      "command": "npm run build",
+      "output": ".next"
     }
-  },
-  "apphosting": {
-    "region": "us-central1",
-    "backend": "mathsandmelody"
   }
 }
