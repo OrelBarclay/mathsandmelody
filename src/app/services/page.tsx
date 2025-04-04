@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { MainLayout } from "@/components/layout/main-layout"
 import { Button } from "@/components/ui/button"
 import {
@@ -51,6 +52,30 @@ const services = [
     ],
   },
 ]
+
+export const metadata: Metadata = {
+  title: "Our Services | Math Tutoring, Music Lessons & Sports Coaching",
+  description: "Discover our comprehensive range of services including math tutoring, music lessons, and sports coaching. Expert instruction tailored to your needs and goals.",
+  keywords: ["math tutoring services", "music lessons", "sports coaching", "private tutoring", "academic services", "educational services"],
+  openGraph: {
+    title: "Our Services - Math & Melody Academy",
+    description: "Discover our comprehensive range of services including math tutoring, music lessons, and sports coaching. Expert instruction tailored to your needs and goals.",
+    images: [
+      {
+        url: "/images/services-og.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Math & Melody Academy Services"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Our Services - Math & Melody Academy",
+    description: "Discover our comprehensive range of services including math tutoring, music lessons, and sports coaching. Expert instruction tailored to your needs and goals.",
+    images: ["/images/services-twitter.jpg"]
+  }
+};
 
 export default function ServicesPage() {
   return (
