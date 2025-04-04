@@ -35,6 +35,7 @@ interface AnalyticsData {
   totalBookings: number
   averageBookingValue: number
   completionRate: number
+  revenueChange: number
 }
 
 export default function AnalyticsPage() {
@@ -45,6 +46,7 @@ export default function AnalyticsPage() {
     totalBookings: 0,
     averageBookingValue: 0,
     completionRate: 0,
+    revenueChange: 0,
   })
   const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d">("30d")
@@ -52,11 +54,52 @@ export default function AnalyticsPage() {
   const loadAnalytics = useCallback(async () => {
     try {
       const bookings = await bookingService.getAllBookings()
-      const startDate = subMonths(new Date(), timeRange === "7d" ? 1 : timeRange === "30d" ? 1 : 3)
-      const endDate = new Date()
+      const currentEndDate = new Date()
+      const currentStartDate = subMonths(currentEndDate, timeRange === "7d" ? 1 : timeRange === "30d" ? 1 : 3)
+      const previousStartDate = subMonths(currentStartDate, timeRange === "7d" ? 1 : timeRange === "30d" ? 1 : 3)
 
-      // Generate daily data
-      const days = eachDayOfInterval({ start: startDate, end: endDate })
+      // Filter bookings for current and previous periods
+      const currentPeriodBookings = bookings.filter((b) => {
+        const bookingDate = b.date;
+        let date: Date;
+        
+        if (typeof bookingDate === 'object' && '_seconds' in bookingDate) {
+          date = new Date(bookingDate._seconds * 1000);
+        } else if (typeof bookingDate === 'string') {
+          date = new Date(bookingDate);
+        } else {
+          return false;
+        }
+        
+        return date >= currentStartDate && date <= currentEndDate;
+      });
+
+      const previousPeriodBookings = bookings.filter((b) => {
+        const bookingDate = b.date;
+        let date: Date;
+        
+        if (typeof bookingDate === 'object' && '_seconds' in bookingDate) {
+          date = new Date(bookingDate._seconds * 1000);
+        } else if (typeof bookingDate === 'string') {
+          date = new Date(bookingDate);
+        } else {
+          return false;
+        }
+        
+        return date >= previousStartDate && date < currentStartDate;
+      });
+
+      // Calculate revenue for both periods
+      const currentRevenue = currentPeriodBookings.reduce((sum, b) => sum + b.price, 0);
+      const previousRevenue = previousPeriodBookings.reduce((sum, b) => sum + b.price, 0);
+
+      // Calculate revenue change percentage
+      const revenueChange = previousRevenue === 0 
+        ? 100 // If previous revenue was 0, treat as 100% increase
+        : ((currentRevenue - previousRevenue) / previousRevenue) * 100;
+
+      // Generate daily data for the chart
+      const days = eachDayOfInterval({ start: currentStartDate, end: currentEndDate })
       const dailyBookings = days.map((day) => {
         const dayStart = startOfDay(day)
         const dayBookings = bookings.filter((b) => {
@@ -64,10 +107,8 @@ export default function AnalyticsPage() {
           let date: Date;
           
           if (typeof bookingDate === 'object' && '_seconds' in bookingDate) {
-            // Handle Firestore Timestamp
             date = new Date(bookingDate._seconds * 1000);
           } else if (typeof bookingDate === 'string') {
-            // Handle ISO string
             date = new Date(bookingDate);
           } else {
             return false;
@@ -99,7 +140,7 @@ export default function AnalyticsPage() {
       }))
 
       // Calculate overall statistics
-      const totalRevenue = bookings.reduce((sum, b) => sum + b.price, 0)
+      const totalRevenue = currentRevenue
       const totalBookings = bookings.length
       const averageBookingValue = totalBookings > 0 ? totalRevenue / totalBookings : 0
       const completedBookings = bookings.filter((b) => b.status === "completed").length
@@ -112,6 +153,7 @@ export default function AnalyticsPage() {
         totalBookings,
         averageBookingValue,
         completionRate,
+        revenueChange,
       })
     } catch (error) {
       console.error("Error loading analytics:", error)
@@ -168,6 +210,9 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">${data.totalRevenue.toFixed(2)}</div>
+              <p className={`text-xs ${data.revenueChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {data.revenueChange >= 0 ? '↑' : '↓'} {Math.abs(data.revenueChange).toFixed(1)}% from previous period
+              </p>
             </CardContent>
           </Card>
 
