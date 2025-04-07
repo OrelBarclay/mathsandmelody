@@ -34,21 +34,22 @@ export function middleware(request: NextRequest) {
   const session = request.cookies.get("session")?.value
   const isAuthPage = pathname.startsWith("/auth/")
   const isAdminPage = pathname.startsWith("/admin/")
+  const isDashboardPage = pathname === "/dashboard"
 
-  // Redirect authenticated users away from auth pages
-  if (session && isAuthPage) {
-    return NextResponse.redirect(new URL("/dashboard", request.url))
+  // Allow access to auth pages regardless of session
+  if (isAuthPage) {
+    return NextResponse.next()
   }
 
-  // Redirect unauthenticated users to sign in
-  if (!session && !isAuthPage) {
+  // Redirect unauthenticated users to sign in for protected routes
+  if (!session && (isDashboardPage || isAdminPage)) {
     const signInUrl = new URL("/auth/signin", request.url)
     signInUrl.searchParams.set("from", pathname)
     return NextResponse.redirect(signInUrl)
   }
 
   // Redirect admin users from /dashboard to /admin if they're already on admin routes
-  if (session && pathname === "/dashboard" && isAdminPage) {
+  if (session && isDashboardPage && isAdminPage) {
     return NextResponse.redirect(new URL("/admin", request.url))
   }
 
