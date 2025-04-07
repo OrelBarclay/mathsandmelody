@@ -5,7 +5,7 @@ import { getStorage } from "firebase/storage"
 
 const firebaseConfig = {
   apiKey: "AIzaSyD0XObk_J9POLp8Z8dKpUd_VSI3OmcRRks",
-  authDomain: "mathandmelody-a677f.firebaseapp.com",
+  authDomain: "mathsandmelodyacademy.com",
   projectId: "mathandmelody-a677f",
   storageBucket: "mathandmelody-a677f.firebasestorage.app",
   messagingSenderId: "417011127689",
@@ -17,6 +17,16 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)
 
 // Initialize services
 const auth = getAuth(app)
+auth.useDeviceLanguage() // Use browser's language
+
+// Configure auth settings
+if (typeof window !== 'undefined') {
+  const hostname = window.location.hostname;
+  if (hostname.includes('mathsandmelodyacademy.com')) {
+    auth.updateCurrentUser(auth.currentUser) // Force token refresh
+  }
+}
+
 const db = getFirestore(app)
 const storage = getStorage(app)
 

@@ -37,7 +37,24 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 const createSessionCookie = async (user: User) => {
   const idToken = await user.getIdToken()
-  const response = await fetch("/api/auth/session", {
+  
+  // Get the current hostname
+  const hostname = window.location.hostname;
+  const isCustomDomain = hostname.includes('mathsandmelodyacademy.com');
+  
+  // Determine the API URL based on the hostname
+  const apiUrl = isCustomDomain 
+    ? `https://${hostname}/api/auth/session`
+    : '/api/auth/session';
+
+  console.log('Creating session cookie:', {
+    hostname,
+    isCustomDomain,
+    apiUrl,
+    idTokenLength: idToken.length
+  });
+
+  const response = await fetch(apiUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -46,8 +63,17 @@ const createSessionCookie = async (user: User) => {
   })
 
   if (!response.ok) {
+    const error = await response.json();
+    console.error('Session creation failed:', {
+      status: response.status,
+      error,
+      hostname,
+      isCustomDomain
+    });
     throw new Error("Failed to create session")
   }
+
+  return response.json()
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
