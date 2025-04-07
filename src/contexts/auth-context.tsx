@@ -185,14 +185,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
       console.log('Starting Google sign in:', { currentUrl });
 
-      // Configure Google sign-in
-      googleProvider.setCustomParameters({
-        prompt: 'select_account',
-        redirect_uri: typeof window !== 'undefined' 
-          ? `${window.location.origin}/auth/signin`
-          : 'https://mathsandmelodyacademy.com/auth/signin',
-        state: currentUrl // Pass current URL as state to restore after auth
-      });
+      // // Configure Google sign-in
+      // googleProvider.setCustomParameters({
+      //   prompt: 'select_account',
+      //   redirect_uri: typeof window !== 'undefined' 
+      //     ? `${window.location.origin}/auth/signin`
+      //     : 'https://mathsandmelodyacademy.com/auth/signin',
+      //   state: currentUrl // Pass current URL as state to restore after auth
+      // });
 
       const result = await signInWithPopup(auth, googleProvider)
       console.log("Google sign in result:", result)
