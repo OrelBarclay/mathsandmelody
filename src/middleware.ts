@@ -1,52 +1,66 @@
-import { NextResponse, NextRequest } from "next/server";
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 
-export async function middleware(request: NextRequest) {
-  const session = request.cookies.get("session")?.value;
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
 
-  // Check if the request is for an API route
-  if (request.nextUrl.pathname.startsWith("/api/")) {
-    // Skip session check for webhook endpoints and auth endpoints
+  // Handle Firebase auth iframe requests
+  if (pathname.startsWith("/__/auth/")) {
+    const authUrl = new URL(
+      `https://mathandmelody-a677f.firebaseapp.com${pathname}${request.nextUrl.search}`
+    )
+    return NextResponse.rewrite(authUrl)
+  }
+
+  // Handle API routes
+  if (pathname.startsWith("/api/")) {
+    // Skip session check for session creation endpoint and webhooks
     if (
-      request.nextUrl.pathname.startsWith("/api/webhooks/") ||
-      request.nextUrl.pathname.startsWith("/api/auth/session")
+      pathname === "/api/auth/session" ||
+      pathname.startsWith("/api/webhooks/")
     ) {
-      return NextResponse.next();
+      return NextResponse.next()
     }
 
+    const session = request.cookies.get("session")?.value
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    return NextResponse.next();
+
+    return NextResponse.next()
   }
 
-  // For page routes, redirect to sign in if no session
-  if (!session && (
-    request.nextUrl.pathname.startsWith("/dashboard") ||
-    request.nextUrl.pathname.startsWith("/admin") ||
-    request.nextUrl.pathname.startsWith("/tutor")
-  )) {
-    const signInUrl = new URL("/auth/signin", request.url);
-    signInUrl.searchParams.set("from", request.nextUrl.pathname);
-    return NextResponse.redirect(signInUrl);
+  // Handle page routes
+  const session = request.cookies.get("session")?.value
+  const isAuthPage = pathname.startsWith("/auth/")
+  const isAdminPage = pathname.startsWith("/admin/")
+
+  // Redirect authenticated users away from auth pages
+  if (session && isAuthPage) {
+    return NextResponse.redirect(new URL("/dashboard", request.url))
   }
 
-  // Redirect admin users from /dashboard to /admin
-  if (session && request.nextUrl.pathname.startsWith("/dashboard")) {
-    // Check if user is already on admin routes or has admin in their path
-    const currentPath = request.nextUrl.pathname;
-    if (currentPath.includes("/admin") || request.headers.get("referer")?.includes("/admin")) {
-      return NextResponse.redirect(new URL("/admin", request.url));
-    }
+  // Redirect unauthenticated users to sign in
+  if (!session && !isAuthPage) {
+    const signInUrl = new URL("/auth/signin", request.url)
+    signInUrl.searchParams.set("from", pathname)
+    return NextResponse.redirect(signInUrl)
   }
 
-  return NextResponse.next();
+  // Redirect admin users from /dashboard to /admin if they're already on admin routes
+  if (session && pathname === "/dashboard" && isAdminPage) {
+    return NextResponse.redirect(new URL("/admin", request.url))
+  }
+
+  return NextResponse.next()
 }
 
 export const config = {
   matcher: [
-    "/dashboard/:path*",
-    "/admin/:path*",
-    "/tutor/:path*",
+    "/__/auth/:path*",
     "/api/:path*",
+    "/auth/:path*",
+    "/dashboard",
+    "/admin/:path*",
   ],
-};
+}
