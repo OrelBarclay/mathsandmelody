@@ -28,18 +28,13 @@ const storage = getStorage(app)
 // Configure Google provider
 const googleProvider = new GoogleAuthProvider()
 googleProvider.setCustomParameters({
-  prompt: "select_account",
-  redirect_uri: typeof window !== 'undefined' 
-    ? `${window.location.origin}/auth/signin`
-    : 'https://mathsandmelodyacademy.com/auth/signin'
+  prompt: "select_account"
 })
 
 // Configure GitHub provider
 const githubProvider = new GithubAuthProvider()
 githubProvider.setCustomParameters({
-  redirect_uri: typeof window !== 'undefined' 
-    ? `${window.location.origin}/auth/signin`
-    : 'https://mathsandmelodyacademy.com/auth/signin'
+  prompt: "select_account"
 })
 
 // Set persistence based on environment
