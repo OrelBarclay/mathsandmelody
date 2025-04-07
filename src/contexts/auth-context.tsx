@@ -180,6 +180,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setError(null)
       setLoading(true)
+
+      // Get the current URL for redirect
+      const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+      console.log('Starting Google sign in:', { currentUrl });
+
+      // Configure Google sign-in
+      googleProvider.setCustomParameters({
+        prompt: 'select_account',
+        redirect_uri: typeof window !== 'undefined' 
+          ? `${window.location.origin}/auth/signin`
+          : 'https://mathsandmelodyacademy.com/auth/signin',
+        state: currentUrl // Pass current URL as state to restore after auth
+      });
+
       const result = await signInWithPopup(auth, googleProvider)
       console.log("Google sign in result:", result)
       
@@ -195,17 +209,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const role = idTokenResult.claims.role as UserRole || "student";
         console.log("Google Sign In - User Role:", role);
         setUserRole(role);
+
+        // Create session cookie
+        await createSessionCookie(result.user);
+
+        // Redirect to the original URL or dashboard
+        const returnUrl = new URLSearchParams(window.location.search).get('from') || '/dashboard';
+        window.location.href = returnUrl;
       } catch (roleErr) {
         console.error("Error getting user role:", roleErr)
         setUserRole("student")
+        setError("Failed to get user role")
+        setLoading(false)
+        throw roleErr
       }
-      
-     
-      
-      setLoading(false)
     } catch (err) {
       console.error("Google sign in error:", err)
-      setError("Failed to sign in with Google")
+      setError(err instanceof Error ? err.message : "Failed to sign in with Google")
       setLoading(false)
       throw err
     }

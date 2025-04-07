@@ -22,16 +22,31 @@ auth.useDeviceLanguage() // Use browser's language
 // Configure auth settings
 if (typeof window !== 'undefined') {
   const hostname = window.location.hostname;
-  if (hostname.includes('mathsandmelodyacademy.com')) {
-    auth.updateCurrentUser(auth.currentUser) // Force token refresh
+  const isCustomDomain = hostname.includes('mathsandmelodyacademy.com');
+  
+  // Set the auth domain based on the current hostname
+  if (isCustomDomain) {
+    auth.updateCurrentUser(auth.currentUser); // Force token refresh
   }
 }
 
 const db = getFirestore(app)
 const storage = getStorage(app)
 
-// Initialize auth providers
-const googleProvider = new GoogleAuthProvider()
+// Initialize auth providers with custom configuration
+const googleProvider = new GoogleAuthProvider();
+googleProvider.addScope('email');
+googleProvider.addScope('profile');
+
+// Set custom parameters for Google sign-in
+googleProvider.setCustomParameters({
+  prompt: 'select_account',
+  // Use the current domain for the redirect
+  redirect_uri: typeof window !== 'undefined' 
+    ? `${window.location.origin}/auth/signin`
+    : 'https://mathsandmelodyacademy.com/auth/signin'
+});
+
 const githubProvider = new GithubAuthProvider()
 
 export { app, auth, db, storage, googleProvider, githubProvider } 
