@@ -37,7 +37,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 const createSessionCookie = async (user: User) => {
   try {
-    const idToken = await user.getIdToken(true); // Force token refresh
+    // Force token refresh
+    const idToken = await user.getIdToken(true);
     
     // Get the current hostname
     const hostname = window.location.hostname;
@@ -66,6 +67,7 @@ const createSessionCookie = async (user: User) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ idToken }),
+      credentials: 'include' // Important for cross-domain cookies
     });
 
     if (!response.ok) {
@@ -159,25 +161,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (user) {
-        setUser(user);
-        setIsAuthenticated(true);
-        
         try {
-          // Create session cookie if needed
-          if (!document.cookie.includes('session=')) {
-            console.log('No session cookie found, creating one');
-            await createSessionCookie(user);
-          } else {
-            console.log('Session cookie already exists');
-          }
+          // Force token refresh and get user role
+          await user.getIdToken(true);
+          const idTokenResult = await user.getIdTokenResult();
+          const role = idTokenResult.claims.role as UserRole || "student";
           
-          // Check user claims
-          const role = await checkUserClaims(user);
-          console.log('User role determined:', role);
+          console.log('User authenticated:', {
+            uid: user.uid,
+            email: user.email,
+            role,
+            claims: idTokenResult.claims
+          });
+
+          setUser(user);
+          setIsAuthenticated(true);
           setUserRole(role);
-        } catch (err) {
-          console.error('Error in auth state change handler:', err);
-          setError(err instanceof Error ? err.message : 'Unknown error');
+
+          // Create session cookie
+          await createSessionCookie(user);
+        } catch (error) {
+          console.error('Error in auth state change:', error);
+          setError(error instanceof Error ? error.message : 'Unknown error');
+          setUser(null);
+          setIsAuthenticated(false);
+          setUserRole(null);
         }
       } else {
         console.log("Auth state changed - No user");
@@ -188,7 +196,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    // Cleanup function
     return () => {
       console.log("Cleaning up auth subscription");
       unsubscribe();

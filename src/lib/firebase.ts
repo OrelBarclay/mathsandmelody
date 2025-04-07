@@ -1,49 +1,63 @@
-import { initializeApp, getApps, getApp } from "firebase/app"
-import { getAuth, GoogleAuthProvider, GithubAuthProvider } from "firebase/auth"
+import { initializeApp, getApps } from "firebase/app"
+import {
+  getAuth,
+  GoogleAuthProvider,
+  GithubAuthProvider,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
+} from "firebase/auth"
 import { getFirestore } from "firebase/firestore"
 import { getStorage } from "firebase/storage"
 
-// Always use the Firebase domain for auth, even with custom domains
 const firebaseConfig = {
-  apiKey: "AIzaSyD0XObk_J9POLp8Z8dKpUd_VSI3OmcRRks",
-  authDomain: "mathandmelody-a677f.firebaseapp.com", // Use Firebase domain for auth
-  projectId: "mathandmelody-a677f",
-  storageBucket: "mathandmelody-a677f.firebasestorage.app",
-  messagingSenderId: "417011127689",
-  appId: "1:417011127689:web:3509abac4a6250b0463d58"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: "mathsandmelodyacademy.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
 // Initialize Firebase
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)
-
-// Initialize services
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig)
 const auth = getAuth(app)
-auth.useDeviceLanguage() // Use browser's language
+const db = getFirestore(app)
+const storage = getStorage(app)
 
-// Configure auth settings
+// Configure Google provider
+const googleProvider = new GoogleAuthProvider()
+googleProvider.setCustomParameters({
+  prompt: "select_account",
+  redirect_uri: typeof window !== 'undefined' 
+    ? `${window.location.origin}/auth/signin`
+    : 'https://mathsandmelodyacademy.com/auth/signin'
+})
+
+// Configure GitHub provider
+const githubProvider = new GithubAuthProvider()
+githubProvider.setCustomParameters({
+  redirect_uri: typeof window !== 'undefined' 
+    ? `${window.location.origin}/auth/signin`
+    : 'https://mathsandmelodyacademy.com/auth/signin'
+})
+
+// Set persistence based on environment
 if (typeof window !== 'undefined') {
   const hostname = window.location.hostname;
   const isCustomDomain = hostname.includes('mathsandmelodyacademy.com');
   
-  // Set the auth domain based on the current hostname
+  // Always use LOCAL persistence for custom domain
   if (isCustomDomain) {
-    auth.updateCurrentUser(auth.currentUser); // Force token refresh
+    setPersistence(auth, browserLocalPersistence).catch((error) => {
+      console.error('Error setting persistence:', error);
+    });
+  } else {
+    // For local development, use SESSION persistence
+    setPersistence(auth, browserSessionPersistence).catch((error) => {
+      console.error('Error setting persistence:', error);
+    });
   }
 }
 
-const db = getFirestore(app)
-const storage = getStorage(app)
-
-// Initialize auth providers with custom configuration
-const googleProvider = new GoogleAuthProvider();
-googleProvider.addScope('email');
-googleProvider.addScope('profile');
-
-// Set custom parameters for Google sign-in
-googleProvider.setCustomParameters({
-  prompt: 'select_account'
-});
-
-const githubProvider = new GithubAuthProvider()
-
-export { app, auth, db, storage, googleProvider, githubProvider } 
+export { auth, db, storage, googleProvider, githubProvider } 
