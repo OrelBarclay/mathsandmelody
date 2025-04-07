@@ -5,8 +5,11 @@ export async function middleware(request: NextRequest) {
 
   // Check if the request is for an API route
   if (request.nextUrl.pathname.startsWith("/api/")) {
-    // Skip session check for webhook endpoints
-    if (request.nextUrl.pathname.startsWith("/api/webhooks/")) {
+    // Skip session check for webhook endpoints and auth endpoints
+    if (
+      request.nextUrl.pathname.startsWith("/api/webhooks/") ||
+      request.nextUrl.pathname.startsWith("/api/auth/session")
+    ) {
       return NextResponse.next();
     }
 
