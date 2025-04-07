@@ -35,6 +35,7 @@ export function middleware(request: NextRequest) {
   const isAuthPage = pathname.startsWith("/auth/")
   const isAdminPage = pathname.startsWith("/admin/")
   const isDashboardPage = pathname === "/dashboard"
+  const isBookingPage = pathname.startsWith("/booking/")
 
   // Allow access to auth pages regardless of session
   if (isAuthPage) {
@@ -42,7 +43,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Redirect unauthenticated users to sign in for protected routes
-  if (!session && (isDashboardPage || isAdminPage)) {
+  if (!session && (isDashboardPage || isAdminPage || isBookingPage)) {
     const signInUrl = new URL("/auth/signin", request.url)
     signInUrl.searchParams.set("from", pathname)
     return NextResponse.redirect(signInUrl)
@@ -63,5 +64,6 @@ export const config = {
     "/auth/:path*",
     "/dashboard",
     "/admin/:path*",
+    "/booking/:path*",
   ],
 }
