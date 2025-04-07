@@ -1,14 +1,23 @@
 {
-  "apphosting": {
+  "hosting": {
     "source": ".",
-    "region": "us-central1",
-    "backend": "mathsandmelody",
-    "environment": {
-      "STRIPE_WEBHOOK_SECRET": "whsec_QyZQrXuGqqGIcpiGauHrURd7BUCzFaP9"
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "frameworksBackend": {
+      "region": "us-central1"
     },
-    "build": {
-      "command": "npm run build",
-      "output": ".next"
-    }
+    "rewrites": [
+      {
+        "source": "/__/auth/**",
+        "destination": "/__/auth/handler"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
   }
 }

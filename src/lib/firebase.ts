@@ -3,9 +3,10 @@ import { getAuth, GoogleAuthProvider, GithubAuthProvider } from "firebase/auth"
 import { getFirestore } from "firebase/firestore"
 import { getStorage } from "firebase/storage"
 
+// Always use the Firebase domain for auth, even with custom domains
 const firebaseConfig = {
   apiKey: "AIzaSyD0XObk_J9POLp8Z8dKpUd_VSI3OmcRRks",
-  authDomain: "mathsandmelodyacademy.com",
+  authDomain: "mathandmelody-a677f.firebaseapp.com", // Use Firebase domain for auth
   projectId: "mathandmelody-a677f",
   storageBucket: "mathandmelody-a677f.firebasestorage.app",
   messagingSenderId: "417011127689",
@@ -40,11 +41,7 @@ googleProvider.addScope('profile');
 
 // Set custom parameters for Google sign-in
 googleProvider.setCustomParameters({
-  prompt: 'select_account',
-  // Use the current domain for the redirect
-  redirect_uri: typeof window !== 'undefined' 
-    ? `${window.location.origin}/auth/signin`
-    : 'https://mathsandmelodyacademy.com/auth/signin'
+  prompt: 'select_account'
 });
 
 const githubProvider = new GithubAuthProvider()
