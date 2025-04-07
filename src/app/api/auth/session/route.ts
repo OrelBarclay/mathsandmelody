@@ -12,18 +12,25 @@ export async function POST(request: Request) {
       )
     }
 
+    // Get the domain from the request
+    const domain = request.headers.get('host')?.split(':')[0] || '';
+    const isCustomDomain = domain.includes('mathsandmelodyacademy.com');
+    const origin = request.headers.get('origin') || '';
+
+    console.log('Session creation request:', {
+      domain,
+      isCustomDomain,
+      origin,
+      idTokenLength: idToken.length
+    });
+
     // Create a session cookie using Firebase Admin
     const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
     const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
 
-    // Get the domain from the request
-    const domain = request.headers.get('host')?.split(':')[0] || '';
-    const isCustomDomain = domain.includes('mathsandmelodyacademy.com');
-
-    console.log('Session creation:', {
+    console.log('Session cookie created:', {
       domain,
       isCustomDomain,
-      idTokenLength: idToken.length,
       sessionCookieLength: sessionCookie.length
     });
 
@@ -37,6 +44,12 @@ export async function POST(request: Request) {
       sameSite: "lax",
       domain: isCustomDomain ? '.mathsandmelodyacademy.com' : undefined // Include subdomains for custom domain
     })
+
+    // Add CORS headers for custom domain
+    if (isCustomDomain) {
+      response.headers.set('Access-Control-Allow-Origin', origin);
+      response.headers.set('Access-Control-Allow-Credentials', 'true');
+    }
 
     return response
   } catch (error) {
@@ -52,6 +65,13 @@ export async function DELETE(request: Request) {
   // Get the domain from the request
   const domain = request.headers.get('host')?.split(':')[0] || '';
   const isCustomDomain = domain.includes('mathsandmelodyacademy.com');
+  const origin = request.headers.get('origin') || '';
+
+  console.log('Session deletion request:', {
+    domain,
+    isCustomDomain,
+    origin
+  });
 
   const response = NextResponse.json({ success: true })
   response.cookies.delete({
@@ -59,5 +79,12 @@ export async function DELETE(request: Request) {
     path: "/",
     domain: isCustomDomain ? '.mathsandmelodyacademy.com' : undefined
   })
+
+  // Add CORS headers for custom domain
+  if (isCustomDomain) {
+    response.headers.set('Access-Control-Allow-Origin', origin);
+    response.headers.set('Access-Control-Allow-Credentials', 'true');
+  }
+
   return response
 } 
