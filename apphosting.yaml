@@ -92,12 +92,12 @@ env:
 
   # Application URLs
   - variable: NEXT_PUBLIC_BASE_URL
-    value: https://mathsandmelody--mathandmelody-a677f.us-central1.hosted.app || https://mathsandmelodyacademy.com
+    value: https://mathsandmelody--mathandmelody-a677f.us-central1.hosted.app || https://mathsandmelodyacademy.com || www.mathsandmelodyacademy.com
     availability:
       - BUILD
       - RUNTIME
   - variable: NEXT_PUBLIC_APP_URL
-    value: https://mathsandmelody--mathandmelody-a677f.us-central1.hosted.app || https://mathsandmelodyacademy.com
+    value: https://mathsandmelody--mathandmelody-a677f.us-central1.hosted.app || https://mathsandmelodyacademy.com || www.mathsandmelodyacademy.com
     availability:
       - BUILD
       - RUNTIME
