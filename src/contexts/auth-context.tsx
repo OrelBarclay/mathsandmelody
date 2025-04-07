@@ -174,8 +174,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUserRole("student")
       }
       
-      // Create session cookie
-      await createSessionCookie(result.user)
+     
       
       setLoading(false)
     } catch (err) {
@@ -202,6 +201,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw err
     }
   }
+
+  useEffect(() => {
+    // Create session cookie
+    if (user) {
+      createSessionCookie(user);
+    }
+  }, [user]);
 
   const signIn = async (email: string, password: string) => {
     try {
