@@ -36,45 +36,58 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 const createSessionCookie = async (user: User) => {
-  const idToken = await user.getIdToken()
-  
-  // Get the current hostname
-  const hostname = window.location.hostname;
-  const isCustomDomain = hostname.includes('mathsandmelodyacademy.com');
-  
-  // Determine the API URL based on the hostname
-  const apiUrl = isCustomDomain 
-    ? `https://${hostname}/api/auth/session`
-    : '/api/auth/session';
+  try {
+    const idToken = await user.getIdToken(true); // Force token refresh
+    
+    // Get the current hostname
+    const hostname = window.location.hostname;
+    const isCustomDomain = hostname.includes('mathsandmelodyacademy.com');
+    
+    // Determine the API URL based on the hostname
+    const apiUrl = isCustomDomain 
+      ? `https://${hostname}/api/auth/session`
+      : '/api/auth/session';
 
-  console.log('Creating session cookie:', {
-    hostname,
-    isCustomDomain,
-    apiUrl,
-    idTokenLength: idToken.length
-  });
-
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ idToken }),
-  })
-
-  if (!response.ok) {
-    const error = await response.json();
-    console.error('Session creation failed:', {
-      status: response.status,
-      error,
+    console.log('Creating session cookie:', {
       hostname,
-      isCustomDomain
+      isCustomDomain,
+      apiUrl,
+      idTokenLength: idToken.length,
+      user: {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName
+      }
     });
-    throw new Error("Failed to create session")
-  }
 
-  return response.json()
-}
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ idToken }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('Session creation failed:', {
+        status: response.status,
+        error,
+        hostname,
+        isCustomDomain,
+        responseText: await response.text()
+      });
+      throw new Error("Failed to create session");
+    }
+
+    const data = await response.json();
+    console.log('Session created successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('Error in createSessionCookie:', error);
+    throw error;
+  }
+};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -88,6 +101,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Force token refresh to get latest claims
       await user.getIdToken(true);
       const idTokenResult = await user.getIdTokenResult();
+      
+      console.log('Checking user claims:', {
+        uid: user.uid,
+        claims: idTokenResult.claims,
+        token: idTokenResult.token.substring(0, 10) + '...'
+      });
       
       // If we have a role claim, use it
       if (idTokenResult.claims.role) {
@@ -119,48 +138,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-     const initializeAuth = async () => {
+    const initializeAuth = async () => {
       try {
         // Set persistence to LOCAL
-        await setPersistence(auth, browserLocalPersistence)
+        await setPersistence(auth, browserLocalPersistence);
+        console.log('Auth persistence set to LOCAL');
       } catch (err) {
-        console.error("Error setting persistence:", err)
+        console.error("Error setting persistence:", err);
       }
-    }
+    };
 
     initializeAuth();
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log('Auth state changed:', {
+        hasUser: !!user,
+        uid: user?.uid,
+        email: user?.email,
+        hostname: window.location.hostname
+      });
+
       if (user) {
-        setUser(user)
-        // Create session cookie if needed
-        if (!document.cookie.includes('session=')) {
-          try {
-            await createSessionCookie(user)
-          } catch (cookieErr) {
-            console.error("Error creating session cookie:", cookieErr)
-          }
-        }
+        setUser(user);
         setIsAuthenticated(true);
         
-        // Check user claims
-        const role = await checkUserClaims(user);
-        setUserRole(role);
+        try {
+          // Create session cookie if needed
+          if (!document.cookie.includes('session=')) {
+            console.log('No session cookie found, creating one');
+            await createSessionCookie(user);
+          } else {
+            console.log('Session cookie already exists');
+          }
+          
+          // Check user claims
+          const role = await checkUserClaims(user);
+          console.log('User role determined:', role);
+          setUserRole(role);
+        } catch (err) {
+          console.error('Error in auth state change handler:', err);
+          setError(err instanceof Error ? err.message : 'Unknown error');
+        }
       } else {
         console.log("Auth state changed - No user");
-        setUser(null)
-        setIsAuthenticated(false)
-        setUserRole(null)
+        setUser(null);
+        setIsAuthenticated(false);
+        setUserRole(null);
       }
-      setLoading(false)
-    })
+      setLoading(false);
+    });
 
     // Cleanup function
     return () => {
       console.log("Cleaning up auth subscription");
-      unsubscribe()
-    }
-  }, [])
+      unsubscribe();
+    };
+  }, []);
 
   // Add a separate effect to handle role persistence
   useEffect(() => {
