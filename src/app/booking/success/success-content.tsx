@@ -25,16 +25,11 @@ export function SuccessContent() {
 
         const response = await fetch("/api/verify-payment", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ sessionId }),
         })
 
-        if (!response.ok) {
-          throw new Error("Payment verification failed")
-        }
-
+        if (!response.ok) throw new Error("Payment verification failed")
         setLoading(false)
       } catch (err) {
         console.error("Error verifying payment:", err)

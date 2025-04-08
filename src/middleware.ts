@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { auth } from "@/lib/firebase-admin"
+
 
 // List of paths that require authentication
 const protectedPaths = ["/dashboard", "/admin", "/booking"]
@@ -44,28 +44,6 @@ export async function middleware(request: NextRequest) {
   // If on auth path and has session, redirect to dashboard
   if (isAuthPath && session) {
     return NextResponse.redirect(new URL("/dashboard", request.url))
-  }
-
-  // Verify session for protected paths
-  if (session && (isProtectedPath || isBookingPage)) {
-    try {
-      const decodedClaims = await auth.verifySessionCookie(session)
-      
-      // Check admin access
-      if (path.startsWith("/admin") && decodedClaims.role !== "admin") {
-        return NextResponse.redirect(new URL("/dashboard", request.url))
-      }
-
-      // Check tutor access
-      if (path.startsWith("/dashboard/tutor") && decodedClaims.role !== "tutor") {
-        return NextResponse.redirect(new URL("/dashboard", request.url))
-      }
-    } catch (error) {
-      console.error("Session verification failed:", error)
-      const signInUrl = new URL("/auth/signin", request.url)
-      signInUrl.searchParams.set("from", path)
-      return NextResponse.redirect(signInUrl)
-    }
   }
 
   return NextResponse.next()
