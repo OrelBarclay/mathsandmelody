@@ -22,6 +22,8 @@ import {
   Heading2,
   Link as LinkIcon,
 } from 'lucide-react'
+import { useCallback, useRef, useState } from "react"
+import { Editor } from "@tiptap/react"
 
 interface RichTextEditorProps {
   content: string
@@ -29,161 +31,308 @@ interface RichTextEditorProps {
   placeholder?: string
 }
 
+interface EditorMenuBarProps {
+  editor: Editor | null
+}
+
+const imageDimensions = {
+  small: { width: 320, height: 240 },
+  medium: { width: 640, height: 480 },
+  large: { width: 1024, height: 768 }
+} as const
+
 export function RichTextEditor({ content, onChange, placeholder = 'Write something...' }: RichTextEditorProps) {
+  const [imageSize, setImageSize] = useState<keyof typeof imageDimensions>("medium")
+
   const editor = useEditor({
     extensions: [
-      StarterKit,
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-primary underline',
+      StarterKit.configure({
+        paragraph: {
+          HTMLAttributes: {
+            class: 'my-4',
+          },
         },
       }),
       Image.configure({
         HTMLAttributes: {
-          class: 'rounded-lg max-w-full',
+          class: 'rounded-lg mx-auto',
         },
-      }),
-      CodeBlock,
-      Placeholder.configure({
-        placeholder,
+        allowBase64: true,
       }),
     ],
     content,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML())
     },
+    editorProps: {
+      attributes: {
+        class: 'prose prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[500px] px-4 py-2',
+      },
+    },
   })
+
+  const addImage = useCallback(async (url: string) => {
+    if (!editor) return
+
+    const dimensions = imageDimensions[imageSize]
+    editor.chain()
+      .focus()
+      .setImage({ 
+        src: url,
+        alt: 'Blog image',
+        title: `${dimensions.width}x${dimensions.height}`
+      })
+      .run()
+
+    // Add custom styles after image is inserted
+    const imgs = editor.view.dom.getElementsByTagName('img')
+    const lastImg = imgs[imgs.length - 1]
+    if (lastImg) {
+      lastImg.style.width = `${dimensions.width}px`
+      lastImg.style.maxWidth = '100%'
+      lastImg.style.height = 'auto'
+    }
+  }, [editor, imageSize])
 
   if (!editor) {
     return null
   }
 
-  const addLink = () => {
-    const url = window.prompt('Enter URL')
-    if (url) {
-      editor.chain().focus().setLink({ href: url }).run()
-    }
-  }
-
-  const addImage = (url: string) => {
-    editor.chain().focus().setImage({ src: url }).run()
-  }
-
   return (
-    <div className="border rounded-lg">
-      <div className="flex flex-wrap gap-2 p-2 border-b bg-muted/50">
+    <div className="border rounded-md">
+      <div className="border-b px-4 py-2 flex flex-wrap items-center gap-2">
         <Button
           variant="ghost"
-          size="icon"
+          size="sm"
           onClick={() => editor.chain().focus().toggleBold().run()}
-          data-active={editor.isActive('bold')}
-          className="data-[active=true]:bg-muted"
+          className={editor.isActive('bold') ? 'bg-accent' : ''}
         >
-          <Bold className="h-4 w-4" />
+          <strong>B</strong>
         </Button>
         <Button
           variant="ghost"
-          size="icon"
+          size="sm"
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          data-active={editor.isActive('italic')}
-          className="data-[active=true]:bg-muted"
+          className={editor.isActive('italic') ? 'bg-accent' : ''}
         >
-          <Italic className="h-4 w-4" />
+          <em>I</em>
         </Button>
         <Button
           variant="ghost"
-          size="icon"
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-          data-active={editor.isActive('strike')}
-          className="data-[active=true]:bg-muted"
-        >
-          <Strikethrough className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          data-active={editor.isActive('heading', { level: 1 })}
-          className="data-[active=true]:bg-muted"
-        >
-          <Heading1 className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
+          size="sm"
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          data-active={editor.isActive('heading', { level: 2 })}
-          className="data-[active=true]:bg-muted"
+          className={editor.isActive('heading', { level: 2 }) ? 'bg-accent' : ''}
         >
-          <Heading2 className="h-4 w-4" />
+          H2
         </Button>
         <Button
           variant="ghost"
-          size="icon"
+          size="sm"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          data-active={editor.isActive('bulletList')}
-          className="data-[active=true]:bg-muted"
+          className={editor.isActive('bulletList') ? 'bg-accent' : ''}
         >
-          <List className="h-4 w-4" />
+          •
         </Button>
         <Button
           variant="ghost"
-          size="icon"
+          size="sm"
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          data-active={editor.isActive('orderedList')}
-          className="data-[active=true]:bg-muted"
+          className={editor.isActive('orderedList') ? 'bg-accent' : ''}
         >
-          <ListOrdered className="h-4 w-4" />
+          1.
         </Button>
         <Button
           variant="ghost"
-          size="icon"
-          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-          data-active={editor.isActive('codeBlock')}
-          className="data-[active=true]:bg-muted"
+          size="sm"
+          onClick={() => editor.chain().focus().setHorizontalRule().run()}
         >
-          <Code className="h-4 w-4" />
+          ―
         </Button>
         <Button
           variant="ghost"
-          size="icon"
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          data-active={editor.isActive('blockquote')}
-          className="data-[active=true]:bg-muted"
-        >
-          <Quote className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={addLink}
-          data-active={editor.isActive('link')}
-          className="data-[active=true]:bg-muted"
+          size="sm"
+          onClick={() => {
+            const url = window.prompt('Enter link URL')
+            if (url) {
+              editor.chain().focus().setLink({ href: url }).run()
+            }
+          }}
+          className={editor.isActive('link') ? 'bg-accent' : ''}
         >
           <LinkIcon className="h-4 w-4" />
         </Button>
-        <ImageUpload onUpload={addImage} />
-        <div className="flex-1" />
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => editor.chain().focus().undo().run()}
-        >
-          <Undo className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => editor.chain().focus().redo().run()}
-        >
-          <Redo className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <select
+            value={imageSize}
+            onChange={(e) => setImageSize(e.target.value as keyof typeof imageDimensions)}
+            className="h-8 rounded border border-input bg-transparent px-2 text-sm"
+          >
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+          </select>
+
+          <ImageUpload onUpload={addImage}>
+            <Button variant="ghost" size="sm">
+              🖼️
+            </Button>
+          </ImageUpload>
+        </div>
       </div>
-      <EditorContent 
-        editor={editor} 
-        className="prose prose-sm max-w-none p-4 min-h-[200px] focus:outline-none dark:prose-invert"
-      />
+      <EditorContent editor={editor} />
     </div>
   )
+}
+
+export function EditorMenuBar({ editor }: EditorMenuBarProps) {
+  const [imageSize, setImageSize] = useState("medium")
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const addImage = useCallback(async (url: string) => {
+    if (!editor) return
+
+    const size = {
+      small: { width: 320, height: 240 },
+      medium: { width: 640, height: 480 },
+      large: { width: 1024, height: 768 }
+    }[imageSize]
+
+    editor.chain()
+      .focus()
+      .setImage({ 
+        src: url,
+        width: size.width,
+        height: size.height,
+        alt: 'Blog image'
+      })
+      .run()
+  }, [editor, imageSize])
+
+  if (!editor) return null
+
+  return (
+    <div className="border border-input bg-transparent rounded-t-md px-3 py-2 flex flex-wrap gap-2">
+      <button
+        onClick={() => editor.chain().focus().toggleBold().run()}
+        disabled={!editor.can().chain().focus().toggleBold().run()}
+        className={`p-2 rounded hover:bg-accent ${editor.isActive('bold') ? 'bg-accent' : ''}`}
+        title="Bold"
+      >
+        <strong>B</strong>
+      </button>
+
+      <button
+        onClick={() => editor.chain().focus().toggleItalic().run()}
+        disabled={!editor.can().chain().focus().toggleItalic().run()}
+        className={`p-2 rounded hover:bg-accent ${editor.isActive('italic') ? 'bg-accent' : ''}`}
+        title="Italic"
+      >
+        <em>I</em>
+      </button>
+
+      <button
+        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        className={`p-2 rounded hover:bg-accent ${editor.isActive('heading', { level: 2 }) ? 'bg-accent' : ''}`}
+        title="Heading"
+      >
+        H2
+      </button>
+
+      <button
+        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        className={`p-2 rounded hover:bg-accent ${editor.isActive('bulletList') ? 'bg-accent' : ''}`}
+        title="Bullet List"
+      >
+        •
+      </button>
+
+      <button
+        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        className={`p-2 rounded hover:bg-accent ${editor.isActive('orderedList') ? 'bg-accent' : ''}`}
+        title="Numbered List"
+      >
+        1.
+      </button>
+
+      <button
+        onClick={() => editor.chain().focus().setHorizontalRule().run()}
+        className="p-2 rounded hover:bg-accent"
+        title="Horizontal Line"
+      >
+        ―
+      </button>
+
+      <div className="flex items-center gap-2">
+        <select
+          value={imageSize}
+          onChange={(e) => setImageSize(e.target.value)}
+          className="h-8 rounded border border-input bg-transparent px-2 text-sm"
+        >
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+        </select>
+
+        <ImageUpload onUpload={addImage}>
+          <button
+            type="button"
+            className="p-2 rounded hover:bg-accent"
+            title="Add Image"
+          >
+            🖼️
+          </button>
+        </ImageUpload>
+      </div>
+    </div>
+  )
+}
+
+export const editorStyles = {
+  content: `
+    > * + * {
+      margin-top: 0.75em;
+    }
+    
+    p {
+      margin: 1em 0;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 1em auto;
+      border-radius: 0.5rem;
+    }
+
+    ul,
+    ol {
+      padding: 0 1rem;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      line-height: 1.1;
+      font-weight: 700;
+      margin-top: 2em;
+      margin-bottom: 0.5em;
+    }
+
+    code {
+      background-color: rgba(97, 97, 97, 0.1);
+      color: #616161;
+      padding: 0.25em;
+      border-radius: 0.25em;
+    }
+
+    hr {
+      margin: 1em 0;
+      border: none;
+      border-top: 2px solid rgba(13, 13, 13, 0.1);
+    }
+  `
 } 
