@@ -3,6 +3,7 @@ import { MainLayout } from "@/components/layout/main-layout"
 import { BlogList } from "@/components/blog/blog-list"
 import { db } from "@/lib/firebase-admin"
 import { Blog } from "@/lib/services/admin-service"
+import { Timestamp } from "firebase-admin/firestore"
 
 export const metadata: Metadata = {
   title: "Blog | Math & Melody Academy",
@@ -20,7 +21,6 @@ async function getBlogs(): Promise<Blog[]> {
     
     const blogs = snapshot.docs.map(doc => {
       const data = doc.data()
-      console.log("Blog data:", { id: doc.id, ...data })
       return {
         id: doc.id,
         title: data.title,
@@ -31,15 +31,13 @@ async function getBlogs(): Promise<Blog[]> {
         category: data.category,
         image: data.image,
         published: data.published,
-        createdAt: data.createdAt?.toDate().toISOString(),
-        updatedAt: data.updatedAt?.toDate().toISOString(),
+        createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : '',
+        updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : '',
       } as Blog
     })
 
     // Sort blogs by createdAt in memory
-    return blogs.sort((a, b) => 
-      new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
-    )
+    return blogs.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
   } catch (error) {
     console.error("Error fetching blogs:", error)
     return []

@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -28,17 +27,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { toast } from "@/components/ui/use-toast"
 import { Blog } from "@/lib/services/admin-service"
 import { Loader2, Plus, Pencil, Trash, Eye } from "lucide-react"
 import { format } from "date-fns"
+import { RichTextEditor } from "@/components/editor/rich-text-editor"
 
 export default function BlogsPage() {
   const [blogs, setBlogs] = useState<Blog[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [formData, setFormData] = useState({
+    title: "",
+    content: "",
+    excerpt: "",
+    slug: "",
+    author: "",
+    category: "math",
+    image: "",
+    published: false,
+  })
 
   useEffect(() => {
     loadBlogs()
@@ -62,41 +71,32 @@ export default function BlogsPage() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const data = {
-      title: formData.get("title") as string,
-      content: formData.get("content") as string,
-      excerpt: formData.get("excerpt") as string,
-      slug: formData.get("slug") as string,
-      author: formData.get("author") as string,
-      category: formData.get("category") as "math" | "music" | "sports" | "general",
-      image: formData.get("image") as string,
-      published: formData.get("published") === "on",
-    }
-
     try {
-      const url = selectedBlog
-        ? `/api/admin/blogs/${selectedBlog.id}`
-        : "/api/admin/blogs"
-      const method = selectedBlog ? "PATCH" : "POST"
-
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      })
-
-      if (!response.ok) throw new Error("Failed to save blog")
-
-      await loadBlogs()
+      if (selectedBlog) {
+        await fetch(`/api/admin/blogs/${selectedBlog.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        })
+        toast({
+          title: "Success",
+          description: "Blog updated successfully",
+        })
+      } else {
+        await fetch("/api/admin/blogs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        })
+        toast({
+          title: "Success",
+          description: "Blog created successfully",
+        })
+      }
       setIsDialogOpen(false)
-      setSelectedBlog(null)
-      toast({
-        title: "Success",
-        description: `Blog ${selectedBlog ? "updated" : "created"} successfully`,
-      })
+      loadBlogs()
     } catch (error) {
       console.error("Error saving blog:", error)
       toast({
@@ -105,6 +105,21 @@ export default function BlogsPage() {
         variant: "destructive",
       })
     }
+  }
+
+  const handleEdit = (blog: Blog) => {
+    setSelectedBlog(blog)
+    setFormData({
+      title: blog.title,
+      content: blog.content,
+      excerpt: blog.excerpt,
+      slug: blog.slug,
+      author: blog.author,
+      category: blog.category,
+      image: blog.image || "",
+      published: blog.published || false,
+    })
+    setIsDialogOpen(true)
   }
 
   const handleDelete = async (id: string) => {
@@ -132,6 +147,21 @@ export default function BlogsPage() {
     }
   }
 
+  const handleAddNew = () => {
+    setSelectedBlog(null)
+    setFormData({
+      title: "",
+      content: "",
+      excerpt: "",
+      slug: "",
+      author: "",
+      category: "math",
+      image: "",
+      published: false,
+    })
+    setIsDialogOpen(true)
+  }
+
   if (loading) {
     return (
       <AdminLayout>
@@ -149,7 +179,7 @@ export default function BlogsPage() {
           <h1 className="text-3xl font-bold">Blog Management</h1>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={() => setSelectedBlog(null)}>
+              <Button onClick={handleAddNew}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Blog Post
               </Button>
@@ -166,7 +196,8 @@ export default function BlogsPage() {
                   <Input
                     id="title"
                     name="title"
-                    defaultValue={selectedBlog?.title}
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     required
                   />
                 </div>
@@ -175,27 +206,26 @@ export default function BlogsPage() {
                   <Input
                     id="slug"
                     name="slug"
-                    defaultValue={selectedBlog?.slug}
+                    value={formData.slug}
+                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                     required
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="excerpt">Excerpt</Label>
-                  <Textarea
+                  <Input
                     id="excerpt"
                     name="excerpt"
-                    defaultValue={selectedBlog?.excerpt}
+                    value={formData.excerpt}
+                    onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
                     required
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="content">Content</Label>
-                  <Textarea
-                    id="content"
-                    name="content"
-                    defaultValue={selectedBlog?.content}
-                    required
-                    className="min-h-[200px]"
+                  <RichTextEditor
+                    content={formData.content}
+                    onChange={(content) => setFormData({ ...formData, content })}
                   />
                 </div>
                 <div className="space-y-2">
@@ -203,7 +233,8 @@ export default function BlogsPage() {
                   <Input
                     id="author"
                     name="author"
-                    defaultValue={selectedBlog?.author}
+                    value={formData.author}
+                    onChange={(e) => setFormData({ ...formData, author: e.target.value })}
                     required
                   />
                 </div>
@@ -211,7 +242,8 @@ export default function BlogsPage() {
                   <Label htmlFor="category">Category</Label>
                   <Select
                     name="category"
-                    defaultValue={selectedBlog?.category || "general"}
+                    value={formData.category}
+                    onValueChange={(value) => setFormData({ ...formData, category: value })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
@@ -229,15 +261,18 @@ export default function BlogsPage() {
                   <Input
                     id="image"
                     name="image"
-                    type="url"
-                    defaultValue={selectedBlog?.image}
+                    value={formData.image}
+                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                   />
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Switch
+                  <input
+                    type="checkbox"
                     id="published"
                     name="published"
-                    defaultChecked={selectedBlog?.published}
+                    checked={formData.published}
+                    onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
+                    className="h-4 w-4 rounded border-gray-300"
                   />
                   <Label htmlFor="published">Published</Label>
                 </div>
@@ -287,10 +322,7 @@ export default function BlogsPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
-                          setSelectedBlog(blog)
-                          setIsDialogOpen(true)
-                        }}
+                        onClick={() => handleEdit(blog)}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>

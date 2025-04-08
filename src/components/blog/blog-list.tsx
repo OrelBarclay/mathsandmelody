@@ -39,8 +39,8 @@ export function BlogList({ blogs }: BlogListProps) {
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <span className="capitalize">{blog.category}</span>
                 <span>•</span>
-                <time dateTime={typeof blog.createdAt === 'string' ? blog.createdAt : blog.createdAt?.toISOString() || ""}>
-                  {blog.createdAt && format(new Date(blog.createdAt), "MMM d, yyyy")}
+                <time dateTime={blog.createdAt}>
+                  {format(new Date(blog.createdAt), "MMM d, yyyy")}
                 </time>
               </div>
               <h2 className="text-xl font-semibold group-hover:text-primary transition-colors">

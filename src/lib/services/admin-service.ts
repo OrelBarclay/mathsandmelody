@@ -46,11 +46,11 @@ export interface Blog {
   excerpt: string
   slug: string
   author: string
-  category: "math" | "music" | "sports" | "general"
+  category: "math" | "music" | "sports"
   image?: string
   published: boolean
-  createdAt?: Date
-  updatedAt?: Date
+  createdAt: string
+  updatedAt: string
 }
 
 export class AdminService {
@@ -161,44 +161,108 @@ export class AdminService {
 
   // Blog CRUD
   async getAllBlogs(): Promise<Blog[]> {
-    const snapshot = await db.collection("blogs").orderBy("createdAt", "desc").get()
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: (doc.data().createdAt as Timestamp).toDate(),
-      updatedAt: (doc.data().updatedAt as Timestamp).toDate(),
-    })) as Blog[]
+    try {
+      const snapshot = await db.collection("blogs").orderBy("createdAt", "desc").get()
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate().toISOString(),
+        updatedAt: doc.data().updatedAt?.toDate().toISOString(),
+      })) as Blog[]
+    } catch (error) {
+      console.error("Error getting all blogs:", error)
+      throw error
+    }
   }
 
   async getBlog(id: string): Promise<Blog | null> {
-    const doc = await db.collection("blogs").doc(id).get()
-    if (!doc.exists) return null
-    return {
-      id: doc.id,
-      ...doc.data(),
-      createdAt: (doc.data()?.createdAt as Timestamp).toDate(),
-      updatedAt: (doc.data()?.updatedAt as Timestamp).toDate(),
-    } as Blog
+    try {
+      const doc = await db.collection("blogs").doc(id).get()
+      if (!doc.exists) {
+        return null
+      }
+      const data = doc.data()
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data?.createdAt?.toDate().toISOString(),
+        updatedAt: data?.updatedAt?.toDate().toISOString(),
+      } as Blog
+    } catch (error) {
+      console.error("Error getting blog:", error)
+      throw error
+    }
   }
 
   async createBlog(data: Omit<Blog, "id" | "createdAt" | "updatedAt">): Promise<Blog> {
-    const docRef = await db.collection("blogs").add({
-      ...data,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    })
-    return this.getBlog(docRef.id) as Promise<Blog>
+    try {
+      const docRef = await db.collection("blogs").add({
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      const doc = await docRef.get()
+      return {
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data()?.createdAt?.toDate().toISOString(),
+        updatedAt: doc.data()?.updatedAt?.toDate().toISOString(),
+      } as Blog
+    } catch (error) {
+      console.error("Error creating blog:", error)
+      throw error
+    }
   }
 
-  async updateBlog(id: string, data: Partial<Blog>): Promise<Blog> {
-    await db.collection("blogs").doc(id).update({
-      ...data,
-      updatedAt: new Date(),
-    })
-    return this.getBlog(id) as Promise<Blog>
+  async updateBlog(id: string, data: Partial<Omit<Blog, "id" | "createdAt" | "updatedAt">>): Promise<Blog> {
+    try {
+      await db.collection("blogs").doc(id).update({
+        ...data,
+        updatedAt: new Date(),
+      })
+      const doc = await db.collection("blogs").doc(id).get()
+      return {
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data()?.createdAt?.toDate().toISOString(),
+        updatedAt: doc.data()?.updatedAt?.toDate().toISOString(),
+      } as Blog
+    } catch (error) {
+      console.error("Error updating blog:", error)
+      throw error
+    }
   }
 
   async deleteBlog(id: string): Promise<void> {
-    await db.collection("blogs").doc(id).delete()
+    try {
+      await db.collection("blogs").doc(id).delete()
+    } catch (error) {
+      console.error("Error deleting blog:", error)
+      throw error
+    }
+  }
+
+  async getBlogBySlug(slug: string): Promise<Blog | null> {
+    try {
+      const doc = await db.collection("blogs")
+        .where("slug", "==", slug)
+        .limit(1)
+        .get()
+
+      if (doc.empty) {
+        return null
+      }
+
+      const data = doc.docs[0].data()
+      return {
+        id: doc.docs[0].id,
+        ...data,
+        createdAt: data.createdAt?.toDate().toISOString(),
+        updatedAt: data.updatedAt?.toDate().toISOString(),
+      } as Blog
+    } catch (error) {
+      console.error("Error getting blog by slug:", error)
+      throw error
+    }
   }
 } 

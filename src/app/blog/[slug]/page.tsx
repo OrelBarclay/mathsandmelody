@@ -1,95 +1,75 @@
+import { Suspense } from "react"
+import { notFound } from "next/navigation"
+import { AdminService } from "@/lib/services/admin-service"
+import { format } from "date-fns"
+import Image from "next/image"
 import type { Metadata } from "next/dist/lib/metadata/types/metadata-interface"
 import { MainLayout } from "@/components/layout/main-layout"
-import { db } from "@/lib/firebase-admin"
-import Image from "next/image"
-import { format } from "date-fns"
-import { notFound } from "next/navigation"
-import { Blog } from "@/lib/services/admin-service"
+import { Timestamp } from "firebase-admin/firestore"
 
 interface PageProps {
-  params: Promise<{
+  params: {
     slug: string
-  }>
+  }
 }
 
+const adminService = new AdminService()
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params
-  const normalizedSlug = slug.startsWith('/') ? slug : `/${slug}`
-  
-  const doc = await db.collection("blogs")
-    .where("slug", "==", normalizedSlug)
-    .where("published", "==", true)
-    .limit(1)
-    .get()
+  const blog = await getBlog(params.slug)
+  if (!blog) return {}
 
-  if (doc.empty) {
-    return {
-      title: "Blog Post Not Found",
-      description: "The requested blog post could not be found.",
-    }
-  }
-
-  const blog = doc.docs[0].data() as Blog
+  const publishedTime = blog.createdAt instanceof Timestamp 
+    ? blog.createdAt.toDate().toISOString()
+    : blog.createdAt
 
   return {
-    title: `${blog.title} | Math & Melody Academy`,
+    title: `${blog.title} | Math & Melody Academy Blog`,
     description: blog.excerpt,
     openGraph: {
       title: blog.title,
       description: blog.excerpt,
-      images: blog.image ? [{ url: blog.image }] : [],
+      type: "article",
+      publishedTime,
+      authors: [blog.author],
+      images: blog.image ? [blog.image] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: blog.title,
+      description: blog.excerpt,
+      images: blog.image ? [blog.image] : [],
     },
   }
 }
 
-async function getBlog(slug: string): Promise<Blog | null> {
-  const normalizedSlug = slug.startsWith('/') ? slug : `/${slug}`
-  
-  const doc = await db.collection("blogs")
-    .where("slug", "==", normalizedSlug)
-    .where("published", "==", true)
-    .limit(1)
-    .get()
-
-  if (doc.empty) {
+async function getBlog(slug: string) {
+  try {
+    // Normalize the slug by adding a leading slash if it doesn't have one
+    const normalizedSlug = slug.startsWith("/") ? slug : `/${slug}`
+    const blog = await adminService.getBlogBySlug(normalizedSlug)
+    return blog
+  } catch (error) {
+    console.error("Error fetching blog:", error)
     return null
   }
-
-  const data = doc.docs[0].data()
-  return {
-    id: doc.docs[0].id,
-    ...data,
-    createdAt: data.createdAt?.toDate().toISOString(),
-    updatedAt: data.updatedAt?.toDate().toISOString(),
-  } as Blog
 }
 
-export default async function BlogPostPage({ params }: PageProps) {
-  const { slug } = await params
-  const blog = await getBlog(slug)
+export default async function BlogPost({ params }: PageProps) {
+  const blog = await getBlog(params.slug)
 
-  if (!blog) {
+  if (!blog || !blog.published) {
     notFound()
   }
 
+  const createdAtDate = blog.createdAt instanceof Timestamp 
+    ? blog.createdAt.toDate() 
+    : new Date(blog.createdAt || "")
+
   return (
     <MainLayout>
-      <article className="container mx-auto px-4 py-8">
-        <div className="max-w-3xl mx-auto">
-          <header className="space-y-4 mb-8">
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span className="capitalize">{blog.category}</span>
-              <span>•</span>
-              <time dateTime={typeof blog.createdAt === 'string' ? blog.createdAt : blog.createdAt?.toISOString() || ""}>
-                {blog.createdAt && format(new Date(blog.createdAt), "MMM d, yyyy")}
-              </time>
-            </div>
-            <h1 className="text-4xl font-bold">{blog.title}</h1>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span>By {blog.author}</span>
-            </div>
-          </header>
-
+      <Suspense fallback={<div>Loading...</div>}>
+        <article className="container max-w-3xl py-12">
           {blog.image && (
             <div className="relative aspect-video mb-8 rounded-lg overflow-hidden">
               <Image
@@ -97,16 +77,28 @@ export default async function BlogPostPage({ params }: PageProps) {
                 alt={blog.title}
                 fill
                 className="object-cover"
+                priority
               />
             </div>
           )}
-
+          <header className="mb-8">
+            <h1 className="text-4xl font-bold mb-4">{blog.title}</h1>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="capitalize">{blog.category}</span>
+              <span>•</span>
+              <time dateTime={blog.createdAt instanceof Timestamp ? blog.createdAt.toDate().toISOString() : blog.createdAt}>
+                {format(createdAtDate, "MMM d, yyyy")}
+              </time>
+              <span>•</span>
+              <span>By {blog.author}</span>
+            </div>
+          </header>
           <div 
-            className="prose prose-lg max-w-none"
+            className="prose prose-lg max-w-none dark:prose-invert"
             dangerouslySetInnerHTML={{ __html: blog.content }}
           />
-        </div>
-      </article>
+        </article>
+      </Suspense>
     </MainLayout>
   )
 } 
