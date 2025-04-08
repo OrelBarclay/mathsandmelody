@@ -5,7 +5,7 @@ import { auth, db } from "@/lib/firebase-admin";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function GET(request: NextRequest, context: any) { 
   try {
-    const { params } = context; // 👈 Destructure params inside function
+    const { params } = context; 
     const { id } = params;
 
     if (!id) {

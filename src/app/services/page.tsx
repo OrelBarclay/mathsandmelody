@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import type { Metadata } from "next/dist/lib/metadata/types/metadata-interface"
 import { MainLayout } from "@/components/layout/main-layout"
 import { Button } from "@/components/ui/button"
 import {

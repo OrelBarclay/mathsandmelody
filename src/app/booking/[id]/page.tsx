@@ -1,19 +1,18 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-ignore
-import { Suspense } from "react"
-import { ClientBookingDetails } from "./client-booking-details"
+import { Suspense } from "react";
+import { ClientBookingDetails } from "./client-booking-details";
 
-type PageParams = {
-  params: {
-    id: string
-  }
+interface PageProps {
+  params: Promise<{
+    id: string;
+  }>;
 }
 
-// @ts-ignore
-export default function Page(props: PageParams) {
+export default async function Page({ params }: PageProps) {
+  const { id } = await params;
+  
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <ClientBookingDetails bookingId={props.params.id} />
+      <ClientBookingDetails bookingId={id} />
     </Suspense>
-  )
-} 
+  );
+}

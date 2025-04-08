@@ -8,13 +8,41 @@ const stripe = process.env.STRIPE_SECRET_KEY
     })
   : null
 
+// Helper function to get the base URL
+function getBaseUrl() {
+  // Get the first valid URL from the environment variable
+  const urls = (process.env.NEXT_PUBLIC_APP_URL || "").split("||").map(url => url.trim())
+  const validUrl = urls.find(url => {
+    try {
+      new URL(url)
+      return true
+    } catch {
+      return false
+    }
+  })
+
+  // If no valid URL found, use localhost
+  return validUrl || "http://localhost:3000"
+}
+
 export async function POST(request: Request) {
   try {
     if (!stripe) {
       throw new Error("Stripe is not initialized")
     }
 
-    const { bookingId, amount, currency } = await request.json()
+    const { bookingId, amount, currency = "usd" } = await request.json()
+
+    if (!bookingId || !amount) {
+      throw new Error("Missing required fields: bookingId and amount are required")
+    }
+
+    // Get the base URL
+    const baseUrl = getBaseUrl()
+    
+    // Construct the success and cancel URLs
+    const successUrl = `${baseUrl}/booking/success?session_id={CHECKOUT_SESSION_ID}`
+    const cancelUrl = `${baseUrl}/booking/cancel`
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -24,15 +52,16 @@ export async function POST(request: Request) {
             currency,
             product_data: {
               name: "Tutoring Session",
+              description: `Booking ID: ${bookingId}`,
             },
-            unit_amount: amount * 100, // Convert to cents
+            unit_amount: Math.round(amount * 100), // Convert to cents and ensure it's an integer
           },
           quantity: 1,
         },
       ],
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/booking`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: {
         bookingId,
       },
@@ -47,7 +76,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Error creating checkout session:", error)
     return NextResponse.json(
-      { error: "Error creating checkout session" },
+      { error: error instanceof Error ? error.message : "Error creating checkout session" },
       { status: 500 }
     )
   }

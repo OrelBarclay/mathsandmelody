@@ -1,4 +1,4 @@
-import { Metadata } from "next"
+import type { Metadata } from "next/dist/lib/metadata/types/metadata-interface"
 
 export const metadata: Metadata = {
   title: "Contact Us | Math & Melody Academy",
