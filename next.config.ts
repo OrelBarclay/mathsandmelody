@@ -65,6 +65,32 @@ const nextConfig: NextConfig = {
       }
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'mathsandmelodyacademy.com',
+          },
+        ],
+        destination: 'https://www.mathsandmelodyacademy.com/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'mathsandmelody--mathandmelody-a677f.us-central1.hosted.app',
+          },
+        ],
+        destination: 'https://www.mathsandmelodyacademy.com/:path*',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

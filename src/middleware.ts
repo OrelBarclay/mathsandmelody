@@ -1,57 +1,71 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { auth } from "@/lib/firebase-admin"
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+// List of paths that require authentication
+const protectedPaths = ["/dashboard", "/admin", "/booking"]
+const authPaths = ["/auth/signin", "/auth/signup"]
 
-  // Handle Firebase auth iframe requests
-  if (pathname.startsWith("/__/auth/")) {
-    const authUrl = new URL(
-      `https://mathandmelody-a677f.firebaseapp.com${pathname}${request.nextUrl.search}`
-    )
-    return NextResponse.rewrite(authUrl)
+export async function middleware(request: NextRequest) {
+  // Get the hostname and standardize it
+  const hostname = request.headers.get("host") || ""
+  const isProduction = hostname.includes("mathsandmelodyacademy.com")
+  const isFirebaseHosting = hostname.includes("mathsandmelody--mathandmelody-a677f.us-central1.hosted.app")
+  
+  // Redirect non-www to www in production
+  if (isProduction && !hostname.startsWith("www.")) {
+    const url = new URL(request.url)
+    url.hostname = `www.${hostname}`
+    return NextResponse.redirect(url, { status: 301 })
   }
 
-  // Handle API routes
-  if (pathname.startsWith("/api/")) {
-    // Skip session check for session creation endpoint and webhooks
-    if (
-      pathname === "/api/auth/session" ||
-      pathname.startsWith("/api/webhooks/")
-    ) {
-      return NextResponse.next()
-    }
-
-    const session = request.cookies.get("session")?.value
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    return NextResponse.next()
+  // Redirect Firebase hosting URL to main domain
+  if (isFirebaseHosting) {
+    const url = new URL(request.url)
+    url.hostname = "www.mathsandmelodyacademy.com"
+    return NextResponse.redirect(url, { status: 301 })
   }
 
-  // Handle page routes
+  const path = request.nextUrl.pathname
+  const isProtectedPath = protectedPaths.some((p) => path.startsWith(p))
+  const isAuthPath = authPaths.some((p) => path.startsWith(p))
+  const isBookingPage = path.startsWith("/booking")
+
+  // Check for session cookie
   const session = request.cookies.get("session")?.value
-  const isAuthPage = pathname.startsWith("/auth/")
-  const isAdminPage = pathname.startsWith("/admin/")
-  const isDashboardPage = pathname === "/dashboard"
-  const isBookingPage = pathname.startsWith("/booking/")
 
-  // Allow access to auth pages regardless of session
-  if (isAuthPage) {
-    return NextResponse.next()
-  }
-
-  // Redirect unauthenticated users to sign in for protected routes
-  if (!session && (isDashboardPage || isAdminPage || isBookingPage)) {
+  // If on a protected path and no session, redirect to sign in
+  if ((isProtectedPath || isBookingPage) && !session) {
     const signInUrl = new URL("/auth/signin", request.url)
-    signInUrl.searchParams.set("from", pathname)
+    signInUrl.searchParams.set("from", path)
     return NextResponse.redirect(signInUrl)
   }
 
-  // Redirect admin users from /dashboard to /admin if they're already on admin routes
-  if (session && isDashboardPage && isAdminPage) {
-    return NextResponse.redirect(new URL("/admin", request.url))
+  // If on auth path and has session, redirect to dashboard
+  if (isAuthPath && session) {
+    return NextResponse.redirect(new URL("/dashboard", request.url))
+  }
+
+  // Verify session for protected paths
+  if (session && (isProtectedPath || isBookingPage)) {
+    try {
+      const decodedClaims = await auth.verifySessionCookie(session)
+      
+      // Check admin access
+      if (path.startsWith("/admin") && decodedClaims.role !== "admin") {
+        return NextResponse.redirect(new URL("/dashboard", request.url))
+      }
+
+      // Check tutor access
+      if (path.startsWith("/dashboard/tutor") && decodedClaims.role !== "tutor") {
+        return NextResponse.redirect(new URL("/dashboard", request.url))
+      }
+    } catch (error) {
+      console.error("Session verification failed:", error)
+      const signInUrl = new URL("/auth/signin", request.url)
+      signInUrl.searchParams.set("from", path)
+      return NextResponse.redirect(signInUrl)
+    }
   }
 
   return NextResponse.next()
@@ -59,11 +73,9 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/__/auth/:path*",
-    "/api/:path*",
-    "/auth/:path*",
-    "/dashboard",
+    "/dashboard/:path*",
     "/admin/:path*",
+    "/auth/:path*",
     "/booking/:path*",
   ],
 }

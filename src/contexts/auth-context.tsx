@@ -40,18 +40,18 @@ const createSessionCookie = async (user: User) => {
     // Force token refresh
     const idToken = await user.getIdToken(true);
     
-    // Get the current hostname
+    // Get the current hostname and standardize it
     const hostname = window.location.hostname;
-    const isCustomDomain = hostname.includes('mathsandmelodyacademy.com');
+    const isProduction = hostname.includes('mathsandmelodyacademy.com');
     
-    // Determine the API URL based on the hostname
-    const apiUrl = isCustomDomain 
-      ? `https://${hostname}/api/auth/session`
+    // Always use the www version in production
+    const apiUrl = isProduction 
+      ? 'https://www.mathsandmelodyacademy.com/api/auth/session'
       : '/api/auth/session';
 
     console.log('Creating session cookie:', {
       hostname,
-      isCustomDomain,
+      isProduction,
       apiUrl,
       idTokenLength: idToken.length,
       user: {
@@ -76,7 +76,7 @@ const createSessionCookie = async (user: User) => {
         status: response.status,
         error,
         hostname,
-        isCustomDomain,
+        isProduction,
         responseText: await response.text()
       });
       throw new Error("Failed to create session");
