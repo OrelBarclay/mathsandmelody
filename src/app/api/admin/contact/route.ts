@@ -16,15 +16,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const services = await adminService.getAllServices()
-    return NextResponse.json({ services })
+    const contact = await adminService.getContactInfo()
+    return NextResponse.json({ contact })
   } catch (error) {
-    console.error("Error fetching services:", error)
-    return NextResponse.json({ error: "Failed to fetch services" }, { status: 500 })
+    console.error("Error fetching contact info:", error)
+    return NextResponse.json({ error: "Failed to fetch contact info" }, { status: 500 })
   }
 }
 
-export async function POST(request: Request) {
+export async function PATCH(request: Request) {
   try {
     const session = request.headers.get("Cookie")?.split("session=")[1]?.split(";")[0]
     if (!session) {
@@ -37,10 +37,10 @@ export async function POST(request: Request) {
     }
 
     const data = await request.json()
-    const service = await adminService.createService(data)
-    return NextResponse.json({ service })
+    const contact = await adminService.updateContactInfo(data)
+    return NextResponse.json({ contact })
   } catch (error) {
-    console.error("Error creating service:", error)
-    return NextResponse.json({ error: "Failed to create service" }, { status: 500 })
+    console.error("Error updating contact info:", error)
+    return NextResponse.json({ error: "Failed to update contact info" }, { status: 500 })
   }
 } 

@@ -29,30 +29,30 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "@/components/ui/use-toast"
-import { Service } from "@/lib/services/admin-service"
-import { Loader2, Plus, Pencil, Trash, Eye } from "lucide-react"
+import { PortfolioItem } from "@/lib/services/admin-service"
+import { Loader2, Plus, Pencil, Trash, Link as LinkIcon, Eye } from "lucide-react"
 
-export default function ServicesPage() {
-  const [services, setServices] = useState<Service[]>([])
+export default function PortfolioPage() {
+  const [items, setItems] = useState<PortfolioItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedService, setSelectedService] = useState<Service | null>(null)
+  const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   useEffect(() => {
-    loadServices()
+    loadItems()
   }, [])
 
-  const loadServices = async () => {
+  const loadItems = async () => {
     try {
-      const response = await fetch("/api/admin/services")
-      if (!response.ok) throw new Error("Failed to fetch services")
+      const response = await fetch("/api/admin/portfolio")
+      if (!response.ok) throw new Error("Failed to fetch portfolio items")
       const data = await response.json()
-      setServices(data.services)
+      setItems(data.items)
     } catch (error) {
-      console.error("Error loading services:", error)
+      console.error("Error loading portfolio items:", error)
       toast({
         title: "Error",
-        description: "Failed to load services",
+        description: "Failed to load portfolio items",
         variant: "destructive",
       })
     } finally {
@@ -66,17 +66,16 @@ export default function ServicesPage() {
     const data = {
       title: formData.get("title") as string,
       description: formData.get("description") as string,
-      price: Number(formData.get("price")),
-      duration: Number(formData.get("duration")),
       category: formData.get("category") as "math" | "music" | "sports",
-      features: (formData.get("features") as string).split("\\n").filter(Boolean),
+      image: formData.get("image") as string,
+      link: formData.get("link") as string,
     }
 
     try {
-      const url = selectedService
-        ? `/api/admin/services/${selectedService.id}`
-        : "/api/admin/services"
-      const method = selectedService ? "PATCH" : "POST"
+      const url = selectedItem
+        ? `/api/admin/portfolio/${selectedItem.id}`
+        : "/api/admin/portfolio"
+      const method = selectedItem ? "PATCH" : "POST"
 
       const response = await fetch(url, {
         method,
@@ -84,45 +83,45 @@ export default function ServicesPage() {
         body: JSON.stringify(data),
       })
 
-      if (!response.ok) throw new Error("Failed to save service")
+      if (!response.ok) throw new Error("Failed to save portfolio item")
 
-      await loadServices()
+      await loadItems()
       setIsDialogOpen(false)
-      setSelectedService(null)
+      setSelectedItem(null)
       toast({
         title: "Success",
-        description: `Service ${selectedService ? "updated" : "created"} successfully`,
+        description: `Portfolio item ${selectedItem ? "updated" : "created"} successfully`,
       })
     } catch (error) {
-      console.error("Error saving service:", error)
+      console.error("Error saving portfolio item:", error)
       toast({
         title: "Error",
-        description: "Failed to save service",
+        description: "Failed to save portfolio item",
         variant: "destructive",
       })
     }
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this service?")) return
+    if (!confirm("Are you sure you want to delete this portfolio item?")) return
 
     try {
-      const response = await fetch(`/api/admin/services/${id}`, {
+      const response = await fetch(`/api/admin/portfolio/${id}`, {
         method: "DELETE",
       })
 
-      if (!response.ok) throw new Error("Failed to delete service")
+      if (!response.ok) throw new Error("Failed to delete portfolio item")
 
-      await loadServices()
+      await loadItems()
       toast({
         title: "Success",
-        description: "Service deleted successfully",
+        description: "Portfolio item deleted successfully",
       })
     } catch (error) {
-      console.error("Error deleting service:", error)
+      console.error("Error deleting portfolio item:", error)
       toast({
         title: "Error",
-        description: "Failed to delete service",
+        description: "Failed to delete portfolio item",
         variant: "destructive",
       })
     }
@@ -143,25 +142,25 @@ export default function ServicesPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-bold">Services Management</h1>
+            <h1 className="text-3xl font-bold">Portfolio Management</h1>
             <Button variant="outline" size="sm" asChild>
-              <a href="/services" target="_blank" rel="noopener noreferrer">
+              <a href="/portfolio" target="_blank" rel="noopener noreferrer">
                 <Eye className="h-4 w-4 mr-2" />
-                View Services
+                View Portfolio
               </a>
             </Button>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={() => setSelectedService(null)}>
+              <Button onClick={() => setSelectedItem(null)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Service
+                Add Portfolio Item
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>
-                  {selectedService ? "Edit Service" : "Add New Service"}
+                  {selectedItem ? "Edit Portfolio Item" : "Add New Portfolio Item"}
                 </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -170,7 +169,7 @@ export default function ServicesPage() {
                   <Input
                     id="title"
                     name="title"
-                    defaultValue={selectedService?.title}
+                    defaultValue={selectedItem?.title}
                     required
                   />
                 </div>
@@ -179,37 +178,15 @@ export default function ServicesPage() {
                   <Textarea
                     id="description"
                     name="description"
-                    defaultValue={selectedService?.description}
+                    defaultValue={selectedItem?.description}
                     required
                   />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="price">Price ($)</Label>
-                    <Input
-                      id="price"
-                      name="price"
-                      type="number"
-                      defaultValue={selectedService?.price}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="duration">Duration (minutes)</Label>
-                    <Input
-                      id="duration"
-                      name="duration"
-                      type="number"
-                      defaultValue={selectedService?.duration}
-                      required
-                    />
-                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
                   <Select
                     name="category"
-                    defaultValue={selectedService?.category || "math"}
+                    defaultValue={selectedItem?.category || "math"}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
@@ -222,18 +199,25 @@ export default function ServicesPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="features">
-                    Features (one per line)
-                  </Label>
-                  <Textarea
-                    id="features"
-                    name="features"
-                    defaultValue={selectedService?.features.join("\\n")}
-                    required
+                  <Label htmlFor="image">Image URL</Label>
+                  <Input
+                    id="image"
+                    name="image"
+                    type="url"
+                    defaultValue={selectedItem?.image}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="link">External Link</Label>
+                  <Input
+                    id="link"
+                    name="link"
+                    type="url"
+                    defaultValue={selectedItem?.link}
                   />
                 </div>
                 <Button type="submit" className="w-full">
-                  {selectedService ? "Update Service" : "Create Service"}
+                  {selectedItem ? "Update Portfolio Item" : "Create Portfolio Item"}
                 </Button>
               </form>
             </DialogContent>
@@ -246,25 +230,45 @@ export default function ServicesPage() {
               <TableRow>
                 <TableHead>Title</TableHead>
                 <TableHead>Category</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Duration</TableHead>
+                <TableHead>Image</TableHead>
+                <TableHead>Link</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {services.map((service) => (
-                <TableRow key={service.id}>
-                  <TableCell className="font-medium">{service.title}</TableCell>
-                  <TableCell className="capitalize">{service.category}</TableCell>
-                  <TableCell>${service.price}</TableCell>
-                  <TableCell>{service.duration} min</TableCell>
+              {items.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="font-medium">{item.title}</TableCell>
+                  <TableCell className="capitalize">{item.category}</TableCell>
+                  <TableCell>
+                    {item.image && (
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {item.link && (
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-primary hover:underline"
+                      >
+                        <LinkIcon className="h-4 w-4" />
+                        View
+                      </a>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          setSelectedService(service)
+                          setSelectedItem(item)
                           setIsDialogOpen(true)
                         }}
                       >
@@ -273,7 +277,7 @@ export default function ServicesPage() {
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => handleDelete(service.id!)}
+                        onClick={() => handleDelete(item.id!)}
                       >
                         <Trash className="h-4 w-4" />
                       </Button>

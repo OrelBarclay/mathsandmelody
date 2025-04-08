@@ -16,11 +16,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const services = await adminService.getAllServices()
-    return NextResponse.json({ services })
+    const items = await adminService.getAllPortfolioItems()
+    return NextResponse.json({ items })
   } catch (error) {
-    console.error("Error fetching services:", error)
-    return NextResponse.json({ error: "Failed to fetch services" }, { status: 500 })
+    console.error("Error fetching portfolio items:", error)
+    return NextResponse.json({ error: "Failed to fetch portfolio items" }, { status: 500 })
   }
 }
 
@@ -37,10 +37,10 @@ export async function POST(request: Request) {
     }
 
     const data = await request.json()
-    const service = await adminService.createService(data)
-    return NextResponse.json({ service })
+    const item = await adminService.createPortfolioItem(data)
+    return NextResponse.json({ item })
   } catch (error) {
-    console.error("Error creating service:", error)
-    return NextResponse.json({ error: "Failed to create service" }, { status: 500 })
+    console.error("Error creating portfolio item:", error)
+    return NextResponse.json({ error: "Failed to create portfolio item" }, { status: 500 })
   }
 } 

@@ -3,7 +3,20 @@
 import { ReactNode, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Users, Calendar, BookOpen, Home, BarChart, Settings, LogOut, User, Menu, X } from "lucide-react";
+import {
+  Users,
+  Calendar,
+  BookOpen,
+  Home,
+  BarChart,
+  Settings,
+  LogOut,
+  User,
+  Menu,
+  X,
+  Image as ImageIcon,
+  Book,
+} from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -42,11 +55,20 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           onClick={toggleSidebar}
           className="mr-4"
         >
-          {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          
+          {isSidebarOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <Menu className="h-6 w-6" />
+          )}
         </Button>
         <div className="flex items-center gap-2">
-          <Image src={isDarkMode ? "/images/darkLogo.png" : "/images/logo.png" } objectFit="contain" alt="Logo" width={110} height={110} />
+          <Image
+            src={isDarkMode ? "/images/darkLogo.png" : "/images/logo.png"}
+            objectFit="contain"
+            alt="Logo"
+            width={110}
+            height={110}
+          />
           <h1 className="text-xl font-bold">Admin Panel</h1>
         </div>
       </div>
@@ -115,7 +137,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 setIsSidebarOpen(false);
               }}
             >
-              <BarChart className="mr-2 h-4 w-4" /> 
+              <BarChart className="mr-2 h-4 w-4" />
               Analytics
             </Button>
             <Button
@@ -140,6 +162,29 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <User className="mr-2 h-4 w-4" />
               Profile
             </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => {
+                router.push("/admin/portfolio");
+                setIsSidebarOpen(false);
+              }}
+            >
+              <ImageIcon className="mr-2 h-4 w-4" />
+              Portfolio
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => {
+                router.push("/admin/blogs");
+                setIsSidebarOpen(false);
+              }}
+            >
+              <Book className="mr-2 h-4 w-4" />
+              Blog
+            </Button>
           </nav>
           <div className="p-4 border-t">
             <Button
@@ -155,9 +200,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 p-4 md:p-8 mt-16 md:mt-0">
-        {children}
-      </div>
+      <div className="flex-1 p-4 md:p-8 mt-16 md:mt-0">{children}</div>
 
       {/* Overlay for mobile */}
       {isSidebarOpen && (

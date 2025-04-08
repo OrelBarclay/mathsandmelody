@@ -16,11 +16,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const services = await adminService.getAllServices()
-    return NextResponse.json({ services })
+    const blogs = await adminService.getAllBlogs()
+    return NextResponse.json({ blogs })
   } catch (error) {
-    console.error("Error fetching services:", error)
-    return NextResponse.json({ error: "Failed to fetch services" }, { status: 500 })
+    console.error("Error fetching blogs:", error)
+    return NextResponse.json({ error: "Failed to fetch blogs" }, { status: 500 })
   }
 }
 
@@ -37,10 +37,10 @@ export async function POST(request: Request) {
     }
 
     const data = await request.json()
-    const service = await adminService.createService(data)
-    return NextResponse.json({ service })
+    const blog = await adminService.createBlog(data)
+    return NextResponse.json({ blog })
   } catch (error) {
-    console.error("Error creating service:", error)
-    return NextResponse.json({ error: "Failed to create service" }, { status: 500 })
+    console.error("Error creating blog:", error)
+    return NextResponse.json({ error: "Failed to create blog" }, { status: 500 })
   }
 } 
