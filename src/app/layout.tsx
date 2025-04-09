@@ -95,9 +95,8 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "your-google-verification-code",
-    yandex: "your-yandex-verification-code",
-    yahoo: "your-yahoo-verification-code"
+    google: "google-site-verification: google666156726eade97a.html",
+    yandex: "yandex-verification=a7da696d8cafafc3"
   },
   category: "education",
   classification: "tutoring services",
