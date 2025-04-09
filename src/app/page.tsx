@@ -4,25 +4,29 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 export const metadata: Metadata = {
-  title: "Home | Expert Math Tutoring & Music Lessons",
-  description: "Welcome to Math & Melody Academy. We offer expert tutoring in mathematics, professional music lessons, and sports coaching. Start your journey to excellence today!",
+  title: "Home | Expert Math Tutoring & Music Lessons | Math & Melody Academy",
+  description: "Transform your learning journey with expert math tutoring and music lessons at Math & Melody Academy. Personalized instruction, flexible scheduling, and proven results. Book your session today!",
+  keywords: ["math tutoring", "music lessons", "private tutor", "online tutoring", "math help", "piano lessons", "academic success", "tutoring services", "music education", "sports training"],
   openGraph: {
-    title: "Math & Melody Academy - Expert Math Tutoring & Music Lessons",
-    description: "Welcome to Math & Melody Academy. We offer expert tutoring in mathematics, professional music lessons, and sports coaching. Start your journey to excellence today!",
+    title: "Home | Expert Math Tutoring & Music Lessons | Math & Melody Academy",
+    description: "Transform your learning journey with expert math tutoring and music lessons at Math & Melody Academy. Personalized instruction, flexible scheduling, and proven results. Book your session today!",
     images: [
       {
         url: "/images/home-og.jpg",
         width: 1200,
         height: 630,
-        alt: "Math & Melody Academy Homepage"
+        alt: "Math & Melody Academy - Expert Tutoring Services"
       }
     ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "Math & Melody Academy - Expert Math Tutoring & Music Lessons",
-    description: "Welcome to Math & Melody Academy. We offer expert tutoring in mathematics, professional music lessons, and sports coaching. Start your journey to excellence today!",
+    title: "Home | Expert Math Tutoring & Music Lessons | Math & Melody Academy",
+    description: "Transform your learning journey with expert math tutoring and music lessons at Math & Melody Academy. Personalized instruction, flexible scheduling, and proven results. Book your session today!",
     images: ["/images/home-twitter.jpg"]
+  },
+  alternates: {
+    canonical: "https://www.mathsandmelodyacademy.com"
   }
 };
 

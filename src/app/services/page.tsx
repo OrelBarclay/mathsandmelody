@@ -54,26 +54,29 @@ const services = [
 ]
 
 export const metadata: Metadata = {
-  title: "Our Services | Math Tutoring, Music Lessons & Sports Coaching",
-  description: "Discover our comprehensive range of services including math tutoring, music lessons, and sports coaching. Expert instruction tailored to your needs and goals.",
-  keywords: ["math tutoring services", "music lessons", "sports coaching", "private tutoring", "academic services", "educational services"],
+  title: "Our Services | Expert Math Tutoring & Music Lessons | Math & Melody Academy",
+  description: "Discover our comprehensive range of educational services at Math & Melody Academy. From personalized math tutoring to professional music lessons and sports coaching. Find the perfect program for your needs.",
+  keywords: ["math tutoring services", "music lessons", "private tutoring", "online tutoring", "math help", "piano lessons", "guitar lessons", "sports coaching", "academic support", "music education"],
   openGraph: {
-    title: "Our Services - Math & Melody Academy",
-    description: "Discover our comprehensive range of services including math tutoring, music lessons, and sports coaching. Expert instruction tailored to your needs and goals.",
+    title: "Our Services | Expert Math Tutoring & Music Lessons | Math & Melody Academy",
+    description: "Discover our comprehensive range of educational services at Math & Melody Academy. From personalized math tutoring to professional music lessons and sports coaching. Find the perfect program for your needs.",
     images: [
       {
         url: "/images/services-og.jpg",
         width: 1200,
         height: 630,
-        alt: "Math & Melody Academy Services"
+        alt: "Math & Melody Academy - Our Services"
       }
     ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "Our Services - Math & Melody Academy",
-    description: "Discover our comprehensive range of services including math tutoring, music lessons, and sports coaching. Expert instruction tailored to your needs and goals.",
+    title: "Our Services | Expert Math Tutoring & Music Lessons | Math & Melody Academy",
+    description: "Discover our comprehensive range of educational services at Math & Melody Academy. From personalized math tutoring to professional music lessons and sports coaching. Find the perfect program for your needs.",
     images: ["/images/services-twitter.jpg"]
+  },
+  alternates: {
+    canonical: "https://www.mathsandmelodyacademy.com/services"
   }
 };
 
