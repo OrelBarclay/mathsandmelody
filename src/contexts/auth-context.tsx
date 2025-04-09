@@ -97,49 +97,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userRole, setUserRole] = useState<UserRole | null>(null)
-
-  const checkUserClaims = async (user: User) => {
-    try {
-      // Force token refresh to get latest claims
-      await user.getIdToken(true);
-      const idTokenResult = await user.getIdTokenResult();
-      
-      console.log('Checking user claims:', {
-        uid: user.uid,
-        claims: idTokenResult.claims,
-        token: idTokenResult.token.substring(0, 10) + '...'
-      });
-      
-      // If we have a role claim, use it
-      if (idTokenResult.claims.role) {
-        return idTokenResult.claims.role as UserRole;
-      }
-      
-      // If no role claim, check with the server
-      const response = await fetch("/api/auth/check-claims", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ uid: user.uid }),
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Server claims check:", data);
-        if (data.claims?.role) {
-          return data.claims.role as UserRole;
-        }
-      }
-      
-      return "student";
-    } catch (err) {
-      console.error("Error checking user claims:", err);
-      return "student";
-    }
-  };
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return;
+
     const initializeAuth = async () => {
       try {
         // Set persistence to LOCAL
@@ -179,7 +145,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUserRole(role);
 
           // Create session cookie
-          await createSessionCookie(user);
+          const response = await fetch("/api/auth/session", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ idToken: idTokenResult.token }),
+            credentials: 'include'
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to create session");
+          }
         } catch (error) {
           console.error('Error in auth state change:', error);
           setError(error instanceof Error ? error.message : 'Unknown error');
@@ -200,21 +177,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("Cleaning up auth subscription");
       unsubscribe();
     };
-  }, []);
+  }, [mounted]);
 
-  // Add a separate effect to handle role persistence
-  useEffect(() => {
-    const checkAndUpdateRole = async () => {
-      if (user && !userRole) {
-        console.log("Checking role persistence");
-        const role = await checkUserClaims(user);
-        console.log("Updating persisted role:", role);
-        setUserRole(role);
-      }
-    };
-
-    checkAndUpdateRole();
-  }, [user, userRole]);
+  // Return null during SSR to prevent hydration mismatch
+  if (!mounted) {
+    return null;
+  }
 
   const signInWithGoogle = async () => {
     try {
@@ -224,15 +192,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Get the current URL for redirect
       const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
       console.log('Starting Google sign in:', { currentUrl });
-
-      // // Configure Google sign-in
-      // googleProvider.setCustomParameters({
-      //   prompt: 'select_account',
-      //   redirect_uri: typeof window !== 'undefined' 
-      //     ? `${window.location.origin}/auth/signin`
-      //     : 'https://mathsandmelodyacademy.com/auth/signin',
-      //   state: currentUrl // Pass current URL as state to restore after auth
-      // });
 
       const result = await signInWithPopup(auth, googleProvider)
       console.log("Google sign in result:", result)
@@ -288,33 +247,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  useEffect(() => {
-    // Create session cookie
-    if (user) {
-      createSessionCookie(user);
-    }
-  }, [user]);
-
   const signIn = async (email: string, password: string) => {
     try {
-      setError(null)
-      const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      await createSessionCookie(userCredential.user)
+      setError(null);
+      setLoading(true);
+      
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Force token refresh and get user role
+      await userCredential.user.getIdToken(true);
+      const idTokenResult = await userCredential.user.getIdTokenResult();
+      const role = idTokenResult.claims.role as UserRole || "student";
+      
+      setUser(userCredential.user);
+      setIsAuthenticated(true);
+      setUserRole(role);
+
+      // Create session cookie
+      const response = await fetch("/api/auth/session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ idToken: idTokenResult.token }),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create session");
+      }
+
+      // Redirect to dashboard after successful sign in
+      window.location.href = "/dashboard";
     } catch (err) {
-      console.error("Sign in error:", err)
-      setError("Failed to sign in")
-      throw err
+      console.error("Sign in error:", err);
+      setError(err instanceof Error ? err.message : "Failed to sign in");
+      setLoading(false);
+      throw err;
     }
-  }
+  };
 
   const signUp = async (email: string, password: string) => {
     try {
       setError(null)
+      setLoading(true)
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
       await createSessionCookie(userCredential.user)
+      setLoading(false)
     } catch (err) {
       console.error("Sign up error:", err)
       setError("Failed to sign up")
+      setLoading(false)
       throw err
     }
   }
@@ -322,10 +305,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       setError(null)
+      setLoading(true)
       await firebaseSignOut(auth)
+      setLoading(false)
     } catch (err) {
       console.error("Sign out error:", err)
       setError("Failed to sign out")
+      setLoading(false)
       throw err
     }
   }

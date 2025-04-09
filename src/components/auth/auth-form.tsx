@@ -7,13 +7,14 @@ import { useAuth } from "@/contexts/auth-context"
 import { useState, useEffect } from "react"
 import { Github } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 interface AuthFormProps {
   mode: "signin" | "signup"
 }
 
 export function AuthForm({ mode }: AuthFormProps) {
-  const { signIn, signUp, signInWithGoogle, signInWithGithub, isAuthenticated, error: authError } = useAuth()
+  const { signIn, signUp, signInWithGoogle, signInWithGithub, isAuthenticated, error: authError, loading: authLoading } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -31,6 +32,13 @@ export function AuthForm({ mode }: AuthFormProps) {
     }
   }, [authError])
 
+  useEffect(() => {
+    // Reset loading state if auth loading changes
+    if (!authLoading) {
+      setLoading(false)
+    }
+  }, [authLoading])
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
@@ -43,11 +51,15 @@ export function AuthForm({ mode }: AuthFormProps) {
     try {
       if (mode === "signin") {
         await signIn(email, password)
+        toast.success("Signed in successfully")
       } else {
         await signUp(email, password)
+        toast.success("Account created successfully")
       }
     } catch (err) {
+      console.error("Auth error:", err)
       setError(err instanceof Error ? err.message : "An error occurred")
+      toast.error(err instanceof Error ? err.message : "An error occurred")
     } finally {
       setLoading(false)
     }
@@ -59,15 +71,19 @@ export function AuthForm({ mode }: AuthFormProps) {
       setError(null)
       if (provider === "google") {
         await signInWithGoogle()
+        toast.success("Signed in with Google successfully")
       } else {
         await signInWithGithub()
+        toast.success("Signed in with GitHub successfully")
       }
     } catch (err) {
       if (err instanceof Error && err.message.includes('auth/popup-closed-by-user')) {
         // User closed the popup, don't show error
         console.log('Sign-in cancelled by user')
       } else {
+        console.error("Social login error:", err)
         setError(err instanceof Error ? err.message : "An error occurred")
+        toast.error(err instanceof Error ? err.message : "An error occurred")
       }
     } finally {
       setLoading(false)
@@ -85,7 +101,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             type="email"
             placeholder="Enter your email"
             required
-            disabled={loading}
+            disabled={loading || authLoading}
           />
         </div>
 
@@ -97,7 +113,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             type="password"
             placeholder="Enter your password"
             required
-            disabled={loading}
+            disabled={loading || authLoading}
           />
         </div>
 
@@ -107,8 +123,12 @@ export function AuthForm({ mode }: AuthFormProps) {
           </div>
         )}
 
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Processing..." : mode === "signin" ? "Sign In" : "Sign Up"}
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={loading || authLoading}
+        >
+          {loading || authLoading ? "Processing..." : mode === "signin" ? "Sign In" : "Sign Up"}
         </Button>
       </form>
 
@@ -128,7 +148,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           type="button"
           variant="outline"
           onClick={() => handleSocialLogin("google")}
-          disabled={loading}
+          disabled={loading || authLoading}
         >
           <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
             <path
@@ -154,7 +174,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           type="button"
           variant="outline"
           onClick={() => handleSocialLogin("github")}
-          disabled={loading}
+          disabled={loading || authLoading}
         >
           <Github className="mr-2 h-4 w-4" />
           GitHub

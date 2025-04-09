@@ -31,7 +31,7 @@ import {
 import { toast } from "@/components/ui/use-toast"
 import { PortfolioItem } from "@/lib/services/admin-service"
 import { Loader2, Plus, Pencil, Trash, Link as LinkIcon, Eye } from "lucide-react"
-
+import Image from "next/image"
 export default function PortfolioPage() {
   const [items, setItems] = useState<PortfolioItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -242,10 +242,12 @@ export default function PortfolioPage() {
                   <TableCell className="capitalize">{item.category}</TableCell>
                   <TableCell>
                     {item.image && (
-                      <img
+                      <Image
                         src={item.image}
                         alt={item.title}
                         className="w-16 h-16 object-cover rounded"
+                        width={64}
+                        height={64}
                       />
                     )}
                   </TableCell>

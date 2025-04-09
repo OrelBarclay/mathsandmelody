@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-
 // List of paths that require authentication
 const protectedPaths = ["/dashboard", "/admin", "/booking"]
 const authPaths = ["/auth/signin", "/auth/signup"]
+const publicPaths = ["/", "/about", "/contact", "/services", "/blog", "/portfolio", "/auth/signin", "/auth/signup"]
 
 export async function middleware(request: NextRequest) {
   // Get the hostname and standardize it
@@ -29,13 +29,18 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
   const isProtectedPath = protectedPaths.some((p) => path.startsWith(p))
   const isAuthPath = authPaths.some((p) => path.startsWith(p))
-  const isBookingPage = path.startsWith("/booking")
+  const isPublicPath = publicPaths.some((p) => path.startsWith(p))
+
+  // Allow public paths to pass through
+  if (isPublicPath) {
+    return NextResponse.next()
+  }
 
   // Check for session cookie
   const session = request.cookies.get("session")?.value
 
   // If on a protected path and no session, redirect to sign in
-  if ((isProtectedPath || isBookingPage) && !session) {
+  if (isProtectedPath && !session) {
     const signInUrl = new URL("/auth/signin", request.url)
     signInUrl.searchParams.set("from", path)
     return NextResponse.redirect(signInUrl)

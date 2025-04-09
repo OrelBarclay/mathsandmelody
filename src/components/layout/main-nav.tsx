@@ -12,13 +12,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Menu, X } from "lucide-react"
-import { useState } from "react"
-
+import { useState, useEffect } from "react"
 
 export function MainNav() {
   const pathname = usePathname()
   const { user, signOut } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleSignOut = async () => {
     await signOut()
@@ -30,11 +34,36 @@ export function MainNav() {
     { href: "/portfolio", label: "Portfolio" },
     { href: "/booking", label: "Book Now" },
     { href: "/contact", label: "Contact" },
+    { href: "/blog", label: "Blog" },
   ]
+
+  // Return a placeholder during SSR to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="relative">
+        <div className="lg:hidden">
+          <Button variant="ghost" size="sm" disabled>
+            <Menu className="h-6 w-6" />
+          </Button>
+        </div>
+        <div className="hidden lg:flex lg:gap-x-8">
+          {navLinks.map((link) => (
+            <div
+              key={link.href}
+              className="h-6 w-20 bg-muted animate-pulse rounded"
+            />
+          ))}
+        </div>
+        <div className="hidden lg:flex lg:justify-end lg:gap-x-6">
+          <div className="h-9 w-20 bg-muted animate-pulse rounded" />
+          <div className="h-9 w-20 bg-muted animate-pulse rounded" />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="relative">
-    
       {/* Mobile menu button */}
       <div className="lg:hidden">
         <Button
@@ -52,53 +81,54 @@ export function MainNav() {
       </div>
 
       {/* Desktop navigation */}
-      <div className="hidden lg:flex lg:gap-x-8">
-        {navLinks.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className={cn(
-              "transition-colors hover:text-foreground/80",
-              pathname === link.href ? "text-foreground" : "text-foreground/60"
-            )}
-          >
-            {link.label}
-          </Link>
-        ))}
-      </div>
+      <div className="flex justify-center items-center">
+        <div className="hidden lg:flex lg:gap-x-8">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={cn(
+                "transition-colors hover:text-foreground/80",
+                pathname === link.href ? "text-foreground" : "text-foreground/60"
+              )}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
 
-      {/* Desktop auth buttons/menu */}
-      <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
-        {user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                {user.email}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>
-                <Link href="/dashboard">Dashboard</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link href="/profile">Profile</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSignOut}>
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <>
-            <Link href="/auth/signin">
-              <Button variant="ghost" size="sm">Sign In</Button>
-            </Link>
-            <Link href="/auth/signup">
-              <Button size="sm">Sign Up</Button>
-            </Link>
-          </>
-        )}
-        {/* <ThemeToggle /> */}
+        {/* Desktop auth buttons/menu */}
+        <div className="hidden lg:flex lg:justify-end lg:gap-x-6">
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  {user.displayName?.split(" ")[0]}{"'s Dashboard"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>
+                  <Link href="/dashboard">Dashboard</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link href="/profile">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut}>
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <>
+              <Link href="/auth/signin">
+                <Button variant="ghost" size="sm">Sign In</Button>
+              </Link>
+              <Link href="/auth/signup">
+                <Button size="sm">Sign Up</Button>
+              </Link>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Mobile navigation menu */}
@@ -176,8 +206,6 @@ export function MainNav() {
             </div>
           </div>
         </div>
-         
-
       )}
     </div>
   )
