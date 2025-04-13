@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Preferred domain
+Host: https://www.mathsandmelodyacademy.com
+
+# Sitemap
+Sitemap: https://www.mathsandmelodyacademy.com/sitemap.xml 
