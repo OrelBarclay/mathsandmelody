@@ -16,7 +16,7 @@ env:
       - BUILD
       - RUNTIME
   - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-    value: mathsandmelodyacademy.com
+    value: mathandmelody-a677f.firebaseapp.com
     availability:
       - BUILD
       - RUNTIME
