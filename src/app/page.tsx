@@ -1,33 +1,50 @@
 import type { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
-import { MainLayout } from "@/components/layout/main-layout"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
+import { MainLayout } from "@/components/layout/main-layout";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Home | Expert Math Tutoring & Music Lessons | Math & Melody Academy",
-  description: "Transform your learning journey with expert math tutoring and music lessons at Math & Melody Academy. Personalized instruction, flexible scheduling, and proven results. Book your session today!",
-  keywords: ["math tutoring", "music lessons", "private tutor", "online tutoring", "math help", "piano lessons", "academic success", "tutoring services", "music education", "sports training"],
+  description:
+    "Transform your learning journey with expert math tutoring and music lessons at Math & Melody Academy. Personalized instruction, flexible scheduling, and proven results. Book your session today!",
+  keywords: [
+    "math tutoring",
+    "music lessons",
+    "private tutor",
+    "online tutoring",
+    "math help",
+    "piano lessons",
+    "academic success",
+    "tutoring services",
+    "music education",
+    "sports training",
+  ],
   openGraph: {
-    title: "Home | Expert Math Tutoring & Music Lessons | Math & Melody Academy",
-    description: "Transform your learning journey with expert math tutoring and music lessons at Math & Melody Academy. Personalized instruction, flexible scheduling, and proven results. Book your session today!",
+    title:
+      "Home | Expert Math Tutoring & Music Lessons | Math & Melody Academy",
+    description:
+      "Transform your learning journey with expert math tutoring and music lessons at Math & Melody Academy. Personalized instruction, flexible scheduling, and proven results. Book your session today!",
     images: [
       {
         url: "/images/home-og.jpg",
         width: 1200,
         height: 630,
-        alt: "Math & Melody Academy - Expert Tutoring Services"
-      }
-    ]
+        alt: "Math & Melody Academy - Expert Tutoring Services",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Home | Expert Math Tutoring & Music Lessons | Math & Melody Academy",
-    description: "Transform your learning journey with expert math tutoring and music lessons at Math & Melody Academy. Personalized instruction, flexible scheduling, and proven results. Book your session today!",
-    images: ["/images/home-twitter.jpg"]
+    title:
+      "Home | Expert Math Tutoring & Music Lessons | Math & Melody Academy",
+    description:
+      "Transform your learning journey with expert math tutoring and music lessons at Math & Melody Academy. Personalized instruction, flexible scheduling, and proven results. Book your session today!",
+    images: ["/images/home-twitter.jpg"],
   },
   alternates: {
-    canonical: "https://www.mathsandmelodyacademy.com"
-  }
+    canonical: "https://www.mathsandmelodyacademy.com",
+  },
 };
 
 export default function Home() {
@@ -35,15 +52,29 @@ export default function Home() {
     <MainLayout>
       <div className="flex flex-col items-center">
         {/* Hero Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
-          <div className="container px-4 md:px-6">
+        <section className="relative w-full py-12 md:py-24 lg:py-32 xl:py-48">
+          {/* Background Image Container */}
+          <div className="absolute inset-0 w-full h-full z-0">
+            <Image
+              src={"/images/home-hero.jpg"}
+              alt="Food Pantry Background"
+              fill
+              priority
+              className="object-cover"
+            />
+          </div>
+          {/* Overlay for readability */}
+          <div className="absolute inset-0 bg-black/50 z-10" />
+          <div className="relative z-20 container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center">
               <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
-                  Math & Melody Academy
+                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none text-white">
+                  Where Numbers Sing and Melodies Compute
                 </h1>
-                <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
-                  Professional math tutoring and music lessons from a multi-talented instructor
+                <p className="mx-auto max-w-[700px] text-white md:text-xl">
+                  Unlock your potential in mathematics and music through our
+                  innovative, integrated learning approach with a multi-talented
+                  instructor
                 </p>
               </div>
               <div className="space-x-4">
@@ -80,7 +111,8 @@ export default function Home() {
                 </div>
                 <h3 className="text-xl font-bold">Math Tutoring</h3>
                 <p className="text-gray-500 dark:text-gray-400">
-                  Expert math tutoring for all levels, from basic arithmetic to advanced calculus.
+                  Expert math tutoring for all levels, from basic arithmetic to
+                  advanced calculus.
                 </p>
               </div>
               <div className="flex flex-col items-center space-y-4 text-center">
@@ -101,7 +133,8 @@ export default function Home() {
                 </div>
                 <h3 className="text-xl font-bold">Music Lessons</h3>
                 <p className="text-gray-500 dark:text-gray-400">
-                  Professional music instruction in various instruments and music theory.
+                  Professional music instruction in various instruments and
+                  music theory.
                 </p>
               </div>
               <div className="flex flex-col items-center space-y-4 text-center">
@@ -122,7 +155,8 @@ export default function Home() {
                 </div>
                 <h3 className="text-xl font-bold">Sports Coaching</h3>
                 <p className="text-gray-500 dark:text-gray-400">
-                  Athletic training and coaching for various sports and fitness goals.
+                  Athletic training and coaching for various sports and fitness
+                  goals.
                 </p>
               </div>
             </div>
@@ -138,7 +172,8 @@ export default function Home() {
                   Ready to Start Learning?
                 </h2>
                 <p className="mx-auto max-w-[600px] text-gray-500 md:text-xl dark:text-gray-400">
-                  Book your first session today and start your journey towards excellence.
+                  Book your first session today and start your journey towards
+                  excellence.
                 </p>
               </div>
               <div>
@@ -151,5 +186,5 @@ export default function Home() {
         </section>
       </div>
     </MainLayout>
-  )
+  );
 }
