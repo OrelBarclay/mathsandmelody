@@ -1,6 +1,7 @@
 import type { NextConfig } from "next/dist/server/config-shared";
 
 const nextConfig: NextConfig = {
+  output: "export",
   experimental: {
     serverActions: {
       allowedOrigins: ["*"],
@@ -18,7 +19,7 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'firebasestorage.googleapis.com',
         pathname: '/a/**',
-      },
+      }, 
     ],
   },
   async headers() {

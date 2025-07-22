@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "create-admin": "ts-node --project scripts/tsconfig.json scripts/create-admin.ts"
+    "create-admin": "ts-node --project scripts/tsconfig.json scripts/create-admin.ts",
+    "export": "next export"
   },
   "dependencies": {
     "@firebase/auth": "^1.9.1",
