@@ -22,14 +22,20 @@ const allowedPaths = [
   "/favicon.ico",
   "/firebase-messaging-sw.js",
   "/api",
+  "/__/auth",
 ];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   console.log(`Middleware processing path: ${pathname}`);
 
-  if (allowedPaths.some((path) => pathname.startsWith(path)) || publicPaths.includes(pathname)) {
-    console.log("Allowing public or static access");
+  if (allowedPaths.some((path) => pathname.startsWith(path))) {
+    console.log("Allowing Firebase Auth or static access");
+    return NextResponse.next();
+  }
+
+  if (publicPaths.includes(pathname)) {
+    console.log("Allowing public access");
     return NextResponse.next();
   }
 
@@ -57,7 +63,6 @@ export async function middleware(request: NextRequest) {
         console.log("Session created, setting cookie and redirecting");
         const redirectResponse = NextResponse.redirect(new URL("/dashboard", request.url));
         redirectResponse.headers.set("Set-Cookie", setCookie);
-        //Example of using sessionData.
         redirectResponse.headers.set("x-user-id", sessionData.userId || '');
         return redirectResponse;
       }
@@ -67,51 +72,61 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (!session) {
-    if (protectedPaths.some((path) => pathname.startsWith(path))) {
+  if (authPaths.some((path) => pathname.startsWith(path))) {
+    if (session) {
+      try {
+        const checkResponse = await fetch(`${request.nextUrl.origin}/api/auth/check`, {
+          headers: { Cookie: `session=${session}` },
+        });
+
+        if (checkResponse.ok) {
+          const { isAdmin } = await checkResponse.json();
+          return NextResponse.redirect(new URL(isAdmin ? "/admin" : "/dashboard", request.url));
+        }
+      } catch (error) {
+        console.error("Error checking session:", error);
+      }
+    }
+    return NextResponse.next();
+  }
+
+  if (protectedPaths.some((path) => pathname.startsWith(path))) {
+    if (!session) {
       console.log("No session, redirecting to login");
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("from", pathname);
       return NextResponse.redirect(loginUrl);
     }
-    return NextResponse.next();
-  }
 
-  console.log("Session present, checking user role");
-  try {
-    const checkResponse = await fetch(`${request.nextUrl.origin}/api/auth/check`, {
-      headers: { Cookie: `session=${session}` },
-    });
+    try {
+      const checkResponse = await fetch(`${request.nextUrl.origin}/api/auth/check`, {
+        headers: { Cookie: `session=${session}` },
+      });
 
-    if (!checkResponse.ok) {
-      console.error("Session check failed:", await checkResponse.text());
+      if (!checkResponse.ok) {
+        console.error("Session check failed:", await checkResponse.text());
+        return NextResponse.redirect(new URL("/login", request.url));
+      }
+
+      const { isAdmin } = await checkResponse.json();
+      console.log(`User is admin: ${isAdmin}`);
+
+      if (pathname.startsWith("/admin") && !isAdmin) {
+        console.log("Non-admin user accessing admin route, redirecting to dashboard");
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+
+      if (pathname.startsWith("/dashboard") && isAdmin) {
+        console.log("Admin user accessing dashboard route, redirecting to admin");
+        return NextResponse.redirect(new URL("/admin", request.url));
+      }
+    } catch (error) {
+      console.error("Error checking session:", error);
       return NextResponse.redirect(new URL("/login", request.url));
     }
-
-    const { isAdmin } = await checkResponse.json();
-    console.log(`User is admin: ${isAdmin}`);
-
-    if (pathname.startsWith("/admin") && !isAdmin) {
-      console.log("Non-admin user accessing admin route, redirecting to dashboard");
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-
-    if (pathname.startsWith("/dashboard") && isAdmin) {
-      console.log("Admin user accessing dashboard route, redirecting to admin");
-      return NextResponse.redirect(new URL("/admin", request.url));
-    }
-
-    if (authPaths.some((path) => pathname.startsWith(path))) {
-      console.log("User logged in, redirecting to appropriate dashboard");
-      return isAdmin ? NextResponse.redirect(new URL("/admin", request.url)) : NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-
-    console.log("Allowing access");
-    return NextResponse.next();
-  } catch (error) {
-    console.error("Error checking session:", error);
-    return NextResponse.redirect(new URL("/login", request.url));
   }
+
+  return NextResponse.next();
 }
 
 export const config = {

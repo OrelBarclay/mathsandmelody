@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "out",
+    "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -9,7 +9,7 @@
     "rewrites": [
       {
         "source": "/__/auth/**",
-        "destination": "https://mathandmelody-a677f.firebaseapp.com/__/auth/**"
+        "destination": "https://www.mathsandmelodyacademy.com/__/auth/handler/**"
       },
       {
         "source": "**",
@@ -23,6 +23,14 @@
           {
             "key": "Access-Control-Allow-Origin",
             "value": "*"
+          },
+          {
+            "key": "Access-Control-Allow-Methods",
+            "value": "GET, POST, OPTIONS"
+          },
+          {
+            "key": "Access-Control-Allow-Headers",
+            "value": "Content-Type, Authorization"
           }
         ]
       }

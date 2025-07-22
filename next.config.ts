@@ -1,7 +1,6 @@
 import type { NextConfig } from "next/dist/server/config-shared";
 
 const nextConfig: NextConfig = {
-  output: "export",
   experimental: {
     serverActions: {
       allowedOrigins: ["*"],
